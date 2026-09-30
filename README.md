@@ -7,8 +7,9 @@
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg?style=flat-square)](https://php.net)
 [![Software License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 
-Server-side syntax highlighting for the [Carve](https://github.com/markup-carve/carve)
-markup language, as a language for [tempest/highlight](https://github.com/tempestphp/highlight).
+Server-side syntax highlighting for [Carve](https://github.com/markup-carve/carve),
+a lightweight markup language for documents and the web, as a language for
+[tempest/highlight](https://github.com/tempestphp/highlight).
 
 ```bash
 composer require markup-carve/tempest-highlight-carve:dev-main
