@@ -1,0 +1,9 @@
+/vendor/
+/build/
+/tmp/
+composer.lock
+.phpunit.result.cache
+/.phpunit.cache/
+/docs/superpowers/
+_*.md
+/_*/

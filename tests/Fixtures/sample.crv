@@ -1,0 +1,37 @@
+{#release-notes .featured}
+# Release notes
+
+This has /italic/, *bold*, _underline_, ~strike~ and =highlight=.
+
+Water is H{,2,}O and the famous one is mc{^2^}.
+
+%% a note nobody reads
+
+- [x] Publish the release
+- [ ] Update the package
+- [?] Decide about the tag
+
+. auto numbered
+. and again
+
+:: term
+: definition
+
+> quoted text
+^ Someone worth quoting
+
+::: note "Read me"
+A body inside an admonition.
+:::
+
+|= Name |=> Age |
+| Alice | 30 |
+^ Table caption
+
+```php
+$x = 1;
+```
+
+See </#release-notes>, [the docs](https://example.com/a_b_c), and @user's #tag.
+
+A bare https://example.com/a_b_c must survive intact.

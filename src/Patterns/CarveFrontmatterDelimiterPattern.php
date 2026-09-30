@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+namespace MarkupCarve\TempestHighlight\Patterns;
+
+use Tempest\Highlight\IsPattern;
+use Tempest\Highlight\Pattern;
+use Tempest\Highlight\PatternTest;
+use Tempest\Highlight\Tokens\TokenTypeEnum;
+
+/**
+ * Frontmatter fence at the very start of a document.
+ */
+#[PatternTest(input: '---
+title: x
+---', output: '---')]
+final readonly class CarveFrontmatterDelimiterPattern implements Pattern
+{
+    use IsPattern;
+
+    public function getPattern(): string
+    {
+        return '/\\A(?<match>---(?:toml|json|yaml)?)[ \\t]*$/m';
+    }
+
+    public function getTokenType(): TokenTypeEnum
+    {
+        return TokenTypeEnum::COMMENT;
+    }
+}
