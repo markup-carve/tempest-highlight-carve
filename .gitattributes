@@ -29,5 +29,4 @@ phpstan.neon export-ignore
 phpcs.xml export-ignore
 .github/ export-ignore
 tests/ export-ignore
-CHANGELOG.md export-ignore
 README.md -export-ignore

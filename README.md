@@ -11,7 +11,7 @@ Server-side syntax highlighting for the [Carve](https://github.com/markup-carve/
 markup language, as a language for [tempest/highlight](https://github.com/tempestphp/highlight).
 
 ```bash
-composer require markup-carve/tempest-highlight-carve
+composer require markup-carve/tempest-highlight-carve:dev-main
 ```
 
 ## Usage
