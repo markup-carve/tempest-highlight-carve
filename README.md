@@ -12,7 +12,7 @@ a lightweight markup language for documents and the web, as a language for
 [tempest/highlight](https://github.com/tempestphp/highlight).
 
 ```bash
-composer require markup-carve/tempest-highlight-carve:dev-main
+composer require markup-carve/tempest-highlight-carve
 ```
 
 ## Usage
