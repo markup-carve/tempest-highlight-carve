@@ -1,5 +1,12 @@
 # Carve for tempest/highlight
 
+[![CI](https://img.shields.io/github/actions/workflow/status/markup-carve/tempest-highlight-carve/ci.yml?branch=main&style=flat-square)](https://github.com/markup-carve/tempest-highlight-carve/actions)
+[![Latest Stable Version](https://img.shields.io/packagist/v/markup-carve/tempest-highlight-carve?style=flat-square)](https://packagist.org/packages/markup-carve/tempest-highlight-carve)
+[![Total Downloads](https://img.shields.io/packagist/dt/markup-carve/tempest-highlight-carve?style=flat-square)](https://packagist.org/packages/markup-carve/tempest-highlight-carve)
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%209-brightgreen.svg?style=flat-square)](https://phpstan.org/)
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg?style=flat-square)](https://php.net)
+[![Software License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
+
 Server-side syntax highlighting for the [Carve](https://github.com/markup-carve/carve)
 markup language, as a language for [tempest/highlight](https://github.com/tempestphp/highlight).
 
@@ -86,10 +93,6 @@ into a Carve grammar.
 
 ```bash
 composer test        # phpunit
-composer stan        # phpstan, level 8
+composer stan        # phpstan, level 9
 composer cs-check    # phpcs
 ```
-
-## License
-
-MIT
