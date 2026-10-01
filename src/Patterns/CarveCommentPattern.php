@@ -20,7 +20,7 @@ final readonly class CarveCommentPattern implements Pattern
 
     public function getPattern(): string
     {
-        return '/\\\\.(*SKIP)(*F)|(?:\$\$?|!)?(`+)(?!`)(?:(?!(?<!`)\1(?!`))[^\n])*(?:(?<!`)\1(?!`)|$)(*SKIP)(*F)|(?<match>(?<!\S)%%[^\n]*)/m';
+        return '/^(?!(?:> )*(?:#{1,6} |\^ ))[^`\n]*(`+)(?!`)(?:(?!(?<!`)\1(?!`))[\s\S])*?(?<!`)\1(?!`)(*SKIP)(*F)|\\\\.(*SKIP)(*F)|(?:\$\$?|!)?(`+)(?!`)(?:(?!(?<!`)\2(?!`))[^\n])*(?:(?<!`)\2(?!`)|$)(*SKIP)(*F)|(?<match>(?<!\S)%%[^\n]*)/m';
     }
 
     public function getTokenType(): TokenTypeEnum

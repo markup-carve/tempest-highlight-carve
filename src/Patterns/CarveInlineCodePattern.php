@@ -19,7 +19,7 @@ final readonly class CarveInlineCodePattern implements Pattern
 
     public function getPattern(): string
     {
-        return '/\\\\.(*SKIP)(*F)|(?<match>(`+)(?!`)(?:(?!(?<!`)\2(?!`))[^\n])*(?:(?<!`)\2(?!`)|$))/m';
+        return '/\\\\.(*SKIP)(*F)|(?|^(?!(?:> )*(?:#{1,6} |\^ ))[^`\n]*(?<match>(`+)(?!`)(?:(?!(?<!`)\2(?!`))[\s\S])*?(?<!`)\2(?!`))|(?<match>(`+)(?!`)(?:(?!(?<!`)\2(?!`))[^\n])*(?:(?<!`)\2(?!`)|$)))/m';
     }
 
     public function getTokenType(): TokenTypeEnum

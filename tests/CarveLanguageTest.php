@@ -103,10 +103,16 @@ final class CarveLanguageTest extends TestCase
      * A URL is dense in the exact characters Carve marks emphasis with. The
      * ordering in CarveLanguage::getPatterns() is what keeps it intact.
      */
+    public function testMultilineParagraphCodeKeepsItsTrailingComment(): void
+    {
+        $html = $this->highlighter()->parse("a `x\ny` %% c", 'carve');
+        $this->assertStringContainsString('<span class="hl-comment">%% c</span>', $html);
+    }
+
     public function testHeadingAndCaptionCommentBoundaries(): void
     {
         foreach (['# a ', '^ cap ', '> # a ', '> ^ cap '] as $prefix) {
-            foreach (['`x %% b`', '``x %% b``', '!`x %% b`', '$`x %% b`', '`x %% b', '` x `` y %% hidden', '``x```y %% hidden'] as $body) {
+            foreach (['`x %% b`', '``x %% b``', '!`x %% b`', '$`x %% b`', '`x %% b', '` x `` y %% hidden', '``x```y %% hidden', '$$`x %% b`'] as $body) {
                 $source = $prefix . $body . "\n\nplain tail";
                 $html = $this->highlighter()->parse($source, 'carve');
                 $this->assertStringNotContainsString('hl-comment', $html, $source);
