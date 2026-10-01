@@ -99,10 +99,12 @@ final class CarveLanguageTest extends TestCase
         yield 'key value' => ['a key=value pair'];
     }
 
-    /**
-     * A URL is dense in the exact characters Carve marks emphasis with. The
-     * ordering in CarveLanguage::getPatterns() is what keeps it intact.
-     */
+    public function testCommentBeforeParagraphCodeStaysAComment(): void
+    {
+        $html = $this->highlighter()->parse('a %% hidden `code`', 'carve');
+        $this->assertStringContainsString('<span class="hl-comment">%% hidden `code`</span>', $html);
+    }
+
     public function testMultilineParagraphCodeKeepsItsTrailingComment(): void
     {
         $html = $this->highlighter()->parse("a `x\ny` %% c", 'carve');
