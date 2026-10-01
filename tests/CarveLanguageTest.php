@@ -42,6 +42,16 @@ final class CarveLanguageTest extends TestCase
             '<span class="hl-keyword"># Release notes</span>',
         ];
 
+        yield 'heading code and comment' => [
+            '# a `x %% b` c %% hidden',
+            '<span class="hl-keyword"># a </span><span class="hl-value">`x %% b`</span><span class="hl-keyword"> c </span><span class="hl-comment">%% hidden</span>',
+        ];
+
+        yield 'caption code and comment' => [
+            '^ cap `x %% b` c %% hidden',
+            '<span class="hl-property">^</span> cap <span class="hl-value">`x %% b`</span> c <span class="hl-comment">%% hidden</span>',
+        ];
+
         yield 'emphasis' => [
             'This has /italic/ and *bold* text',
             'This has <span class="hl-generic">/italic/</span> and <span class="hl-generic">*bold*</span> text',
@@ -89,10 +99,39 @@ final class CarveLanguageTest extends TestCase
         yield 'key value' => ['a key=value pair'];
     }
 
-    /**
-     * A URL is dense in the exact characters Carve marks emphasis with. The
-     * ordering in CarveLanguage::getPatterns() is what keeps it intact.
-     */
+    public function testCommentBeforeParagraphCodeStaysAComment(): void
+    {
+        $html = $this->highlighter()->parse('a %% hidden `code`', 'carve');
+        $this->assertStringContainsString('<span class="hl-comment">%% hidden `code`</span>', $html);
+    }
+
+    public function testMultilineParagraphCodeKeepsItsTrailingComment(): void
+    {
+        $html = $this->highlighter()->parse("a `x\ny` %% c", 'carve');
+        $this->assertStringContainsString('<span class="hl-comment">%% c</span>', $html);
+    }
+
+    public function testHeadingAndCaptionCommentBoundaries(): void
+    {
+        foreach (['# a ', '^ cap ', '> # a ', '> ^ cap '] as $prefix) {
+            foreach (['`x %% b`', '``x %% b``', '!`x %% b`', '$`x %% b`', '`x %% b', '` x `` y %% hidden', '``x```y %% hidden', '$$`x %% b`'] as $body) {
+                $source = $prefix . $body . "\n\nplain tail";
+                $html = $this->highlighter()->parse($source, 'carve');
+                $this->assertStringNotContainsString('hl-comment', $html, $source);
+                $this->assertStringEndsWith("\n\nplain tail", $html);
+            }
+            foreach ([1, 2, 3, 4] as $slashes) {
+                $source = $prefix . str_repeat(chr(92), $slashes) . '`x %% hidden';
+                $html = $this->highlighter()->parse($source, 'carve');
+                if ($slashes % 2 === 1) {
+                    $this->assertStringContainsString('hl-comment', $html, $source);
+                } else {
+                    $this->assertStringNotContainsString('hl-comment', $html, $source);
+                }
+            }
+        }
+    }
+
     public function testABareUrlSurvivesIntact(): void
     {
         $this->assertSame(

@@ -20,7 +20,29 @@ final readonly class CarveCommentPattern implements Pattern
 
     public function getPattern(): string
     {
-        return '(?<match>%%[^\\n]*)';
+        return '/\\\\.(*SKIP)(*F)|(?:\$\$?|!)?(`+)(?!`)(?:(?!(?<!`)\1(?!`))[^\n])*(?:(?<!`)\1(?!`)|$)(*SKIP)(*F)|(?<match>(?<!\S)%%[^\n]*)/m';
+    }
+
+    /**
+     * @return array{match: list<array{string, int}>}
+     */
+    public function match(string $content): array
+    {
+        $matches = [];
+        $offset = 0;
+        foreach (explode("\n", $content) as $line) {
+            $pattern = $this->getPattern();
+            if (!preg_match('/^(?:> )*(?:#{1,6} |\^ )/', $line)) {
+                $pattern = str_replace('|$)', ')', $pattern);
+            }
+            preg_match_all($pattern, $line, $found, PREG_OFFSET_CAPTURE);
+            foreach ($found['match'] as [$value, $start]) {
+                $matches[] = [$value, $offset + $start];
+            }
+            $offset += strlen($line) + 1;
+        }
+
+        return ['match' => $matches];
     }
 
     public function getTokenType(): TokenTypeEnum
