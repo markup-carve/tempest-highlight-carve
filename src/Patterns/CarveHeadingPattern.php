@@ -32,7 +32,7 @@ final readonly class CarveHeadingPattern implements Pattern
         preg_match_all('/^(?:> )*#{1,6} +(?![ \t]*$)[^\n]+/m', $content, $headings, PREG_OFFSET_CAPTURE);
         $matches = [];
         foreach ($headings[0] as [$heading, $offset]) {
-            preg_match_all('/\\\\.(*SKIP)(*F)|(?:\$\$?|!)?(`+)(?!`)(?:(?!\1(?!`))[^\n])*(?:\1(?!`)|$)|(?<!\S)%%[^\n]*/m', $heading, $inline, PREG_OFFSET_CAPTURE);
+            preg_match_all('/\\\\.(*SKIP)(*F)|(?:\$\$?|!)?(`+)(?!`)(?:(?!(?<!`)\1(?!`))[^\n])*(?:(?<!`)\1(?!`)|$)|(?<!\S)%%[^\n]*/m', $heading, $inline, PREG_OFFSET_CAPTURE);
             $cursor = strspn($heading, '> ');
             foreach ($inline[0] as [$value, $start]) {
                 if ($start > $cursor) {

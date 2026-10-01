@@ -106,7 +106,7 @@ final class CarveLanguageTest extends TestCase
     public function testHeadingAndCaptionCommentBoundaries(): void
     {
         foreach (['# a ', '^ cap ', '> # a ', '> ^ cap '] as $prefix) {
-            foreach (['`x %% b`', '``x %% b``', '!`x %% b`', '$`x %% b`', '`x %% b'] as $body) {
+            foreach (['`x %% b`', '``x %% b``', '!`x %% b`', '$`x %% b`', '`x %% b', '` x `` y %% hidden', '``x```y %% hidden'] as $body) {
                 $source = $prefix . $body . "\n\nplain tail";
                 $html = $this->highlighter()->parse($source, 'carve');
                 $this->assertStringNotContainsString('hl-comment', $html, $source);
