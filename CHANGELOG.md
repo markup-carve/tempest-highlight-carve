@@ -4,6 +4,7 @@ All notable changes to this package are documented here.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-08
 ### Fixed
 
 - An include directive is highlighted only where carve-php expands one. The
