@@ -97,6 +97,36 @@ final class CarveLanguageTest extends TestCase
         yield 'bare subscript' => ['A bare ,2, is literal'];
         yield 'snake case' => ['a snake_case_name here'];
         yield 'key value' => ['a key=value pair'];
+
+        // An include directive needs whitespace immediately inside both braces.
+        // Measured against carve-php 0.1.11: `{{ child.crv }}`,
+        // `{{ child.crv#pick }}` and the tab-padded spelling expand, while each
+        // of these stays ordinary text.
+        yield 'unpadded include' => ['see {{child.crv}} here'];
+        yield 'unpadded include with selector' => ['see {{child.crv#pick}} here'];
+        yield 'include braces with one space' => ['see {{ }} here'];
+        yield 'include braces with only whitespace' => ['see {{  }} here'];
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideIncludeSpellingCases(): iterable
+    {
+        yield 'spaced' => ['{{ child.crv }}'];
+        yield 'spaced with selector' => ['{{ child.crv#pick }}'];
+        yield 'tab padded' => ["{{\tchild.crv\t}}"];
+        yield 'selector adjacent to a quoted path' => ['{{ "a b.crv"#pick }}'];
+    }
+
+    #[DataProvider('provideIncludeSpellingCases')]
+    public function testEveryIncludeSpellingTheEngineExpandsIsHighlighted(string $source): void
+    {
+        $this->assertStringContainsString(
+            'hl-type',
+            $this->highlighter()->parse($source, 'carve'),
+            'carve-php expands this spelling, so it has to read as a directive',
+        );
     }
 
     public function testCommentBeforeParagraphCodeStaysAComment(): void
