@@ -16,6 +16,64 @@ final class CarveLanguageTest extends TestCase
         return (new Highlighter())->addLanguage(new CarveLanguage());
     }
 
+    #[DataProvider('provideDelimitedFenceCases')]
+    public function testDelimitedFences(string $source, string $expected): void
+    {
+        $this->assertSame($expected, $this->highlighter()->parse($source, 'carve'));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideDelimitedFenceCases(): iterable
+    {
+        yield 'sample csv' => [
+            "```csv\nPlan,Seats,Price per month\nStarter,1,\"$0\"\nTeam,10,\"$49, billed yearly\"\n```",
+            '<span class="hl-comment">```csv</span>' . "\n"
+            . 'Plan<span class="hl-operator">,</span>Seats<span class="hl-operator">,</span>Price per month' . "\n"
+            . 'Starter<span class="hl-operator">,</span>1<span class="hl-operator">,</span><span class="hl-value">&quot;$0&quot;</span>' . "\n"
+            . 'Team<span class="hl-operator">,</span>10<span class="hl-operator">,</span><span class="hl-value">&quot;$49, billed yearly&quot;</span>' . "\n"
+            . '<span class="hl-comment">```</span>',
+        ];
+
+        yield 'csv quoted newline and escaped quote' => [
+            "```csv\na,\"line one\nline \"\"two\"\n```",
+            '<span class="hl-comment">```csv</span>' . "\n"
+            . 'a<span class="hl-operator">,</span><span class="hl-value">&quot;line one' . "\n"
+            . 'line &quot;&quot;two&quot;</span>' . "\n"
+            . '<span class="hl-comment">```</span>',
+        ];
+
+        yield 'tsv separator and quoted tab' => [
+            "```tsv\na,b\tc\n\"x\ty\"\tz\n```",
+            '<span class="hl-comment">```tsv</span>' . "\n"
+            . 'a,b<span class="hl-operator">' . "\t" . '</span>c' . "\n"
+            . '<span class="hl-value">&quot;x' . "\t" . 'y&quot;</span><span class="hl-operator">' . "\t" . '</span>z' . "\n"
+            . '<span class="hl-comment">```</span>',
+        ];
+
+        yield 'text after closing quote stays plain' => [
+            "```csv\n\"ok\"tail,next\n```",
+            '<span class="hl-comment">```csv</span>' . "\n"
+            . '<span class="hl-value">&quot;ok&quot;</span>tail<span class="hl-operator">,</span>next' . "\n"
+            . '<span class="hl-comment">```</span>',
+        ];
+
+        yield 'mid-field quote remains plain' => [
+            "```csv\na,un\"quoted,tail\n```",
+            '<span class="hl-comment">```csv</span>' . "\n"
+            . 'a<span class="hl-operator">,</span>un&quot;quoted<span class="hl-operator">,</span>tail' . "\n"
+            . '<span class="hl-comment">```</span>',
+        ];
+
+        yield 'unfinished quote reaches end of body' => [
+            "```csv\na,\"unfinished\nnext,line\n```",
+            '<span class="hl-comment">```csv</span>' . "\n"
+            . 'a<span class="hl-operator">,</span><span class="hl-value">&quot;unfinished' . "\n"
+            . 'next,line</span>' . "\n" . '<span class="hl-comment">```</span>',
+        ];
+    }
+
     public function testRegistersItsNameAndAlias(): void
     {
         $highlighter = $this->highlighter();
