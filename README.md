@@ -29,7 +29,17 @@ echo $highlighter->parse($source, 'carve');
 ```
 
 Styling comes from tempest/highlight's own themes, so an existing stylesheet
-needs no change. To highlight `.crv` blocks inside Markdown rendered through
+needs no change, with one exception: CSV and TSV separators are emitted as
+`hl-operator`, and the stock `highlight-tempest.css` has no rule for that class,
+so they render uncolored. Add one:
+
+```css
+.hl-operator {
+    color: #c2410c;
+}
+```
+
+To highlight `.crv` blocks inside Markdown rendered through
 the CommonMark extension, register the language on the highlighter you hand to
 that extension; nothing else differs.
 
