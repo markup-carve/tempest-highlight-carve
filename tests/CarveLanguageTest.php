@@ -30,16 +30,16 @@ final class CarveLanguageTest extends TestCase
         yield 'sample csv' => [
             "```csv\nPlan,Seats,Price per month\nStarter,1,\"$0\"\nTeam,10,\"$49, billed yearly\"\n```",
             '<span class="hl-comment">```csv</span>' . "\n"
-            . 'Plan<span class="hl-operator">,</span>Seats<span class="hl-operator">,</span>Price per month' . "\n"
-            . 'Starter<span class="hl-operator">,</span>1<span class="hl-operator">,</span><span class="hl-value">&quot;$0&quot;</span>' . "\n"
-            . 'Team<span class="hl-operator">,</span>10<span class="hl-operator">,</span><span class="hl-value">&quot;$49, billed yearly&quot;</span>' . "\n"
+            . '<span class="hl-variable">Plan</span><span class="hl-operator">,</span><span class="hl-variable">Seats</span><span class="hl-operator">,</span><span class="hl-variable">Price per month</span>' . "\n"
+            . '<span class="hl-variable">Starter</span><span class="hl-operator">,</span><span class="hl-variable">1</span><span class="hl-operator">,</span><span class="hl-value">&quot;$0&quot;</span>' . "\n"
+            . '<span class="hl-variable">Team</span><span class="hl-operator">,</span><span class="hl-variable">10</span><span class="hl-operator">,</span><span class="hl-value">&quot;$49, billed yearly&quot;</span>' . "\n"
             . '<span class="hl-comment">```</span>',
         ];
 
         yield 'csv quoted newline and escaped quote' => [
             "```csv\na,\"line one\nline \"\"two\"\n```",
             '<span class="hl-comment">```csv</span>' . "\n"
-            . 'a<span class="hl-operator">,</span><span class="hl-value">&quot;line one' . "\n"
+            . '<span class="hl-variable">a</span><span class="hl-operator">,</span><span class="hl-value">&quot;line one' . "\n"
             . 'line &quot;&quot;two&quot;</span>' . "\n"
             . '<span class="hl-comment">```</span>',
         ];
@@ -47,31 +47,41 @@ final class CarveLanguageTest extends TestCase
         yield 'tsv separator and quoted tab' => [
             "```tsv\na,b\tc\n\"x\ty\"\tz\n```",
             '<span class="hl-comment">```tsv</span>' . "\n"
-            . 'a,b<span class="hl-operator">' . "\t" . '</span>c' . "\n"
-            . '<span class="hl-value">&quot;x' . "\t" . 'y&quot;</span><span class="hl-operator">' . "\t" . '</span>z' . "\n"
+            . '<span class="hl-variable">a,b</span><span class="hl-operator">' . "\t" . '</span><span class="hl-variable">c</span>' . "\n"
+            . '<span class="hl-value">&quot;x' . "\t" . 'y&quot;</span><span class="hl-operator">' . "\t" . '</span><span class="hl-variable">z</span>' . "\n"
             . '<span class="hl-comment">```</span>',
         ];
 
         yield 'text after closing quote stays plain' => [
             "```csv\n\"ok\"tail,next\n```",
             '<span class="hl-comment">```csv</span>' . "\n"
-            . '<span class="hl-value">&quot;ok&quot;</span>tail<span class="hl-operator">,</span>next' . "\n"
+            . '<span class="hl-value">&quot;ok&quot;tail</span><span class="hl-operator">,</span><span class="hl-variable">next</span>' . "\n"
             . '<span class="hl-comment">```</span>',
         ];
 
         yield 'mid-field quote remains plain' => [
             "```csv\na,un\"quoted,tail\n```",
             '<span class="hl-comment">```csv</span>' . "\n"
-            . 'a<span class="hl-operator">,</span>un&quot;quoted<span class="hl-operator">,</span>tail' . "\n"
+            . '<span class="hl-variable">a</span><span class="hl-operator">,</span><span class="hl-variable">un&quot;quoted</span><span class="hl-operator">,</span><span class="hl-variable">tail</span>' . "\n"
             . '<span class="hl-comment">```</span>',
         ];
 
         yield 'unfinished quote reaches end of body' => [
             "```csv\na,\"unfinished\nnext,line\n```",
             '<span class="hl-comment">```csv</span>' . "\n"
-            . 'a<span class="hl-operator">,</span><span class="hl-value">&quot;unfinished' . "\n"
+            . '<span class="hl-variable">a</span><span class="hl-operator">,</span><span class="hl-value">&quot;unfinished' . "\n"
             . 'next,line</span>' . "\n" . '<span class="hl-comment">```</span>',
         ];
+    }
+
+    #[DataProvider('provideDelimitedFenceCases')]
+    public function testDelimitedBodiesLeaveNoPlainText(string $source, string $expected): void
+    {
+        $html = $this->highlighter()->parse($source, 'carve');
+        $body = preg_replace('/<span class="hl-comment">```[a-z]*<\/span>\n|\n<span class="hl-comment">```<\/span>$/', '', $html);
+        $stripped = preg_replace('/<span class="hl-[a-z]+">.*?<\/span>/s', '', (string)$body);
+
+        $this->assertSame('', str_replace("\n", '', (string)$stripped));
     }
 
     public function testRegistersItsNameAndAlias(): void

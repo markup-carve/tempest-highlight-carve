@@ -22,7 +22,7 @@ final readonly class DelimitedStringPattern implements Pattern
     {
         $separator = preg_quote($this->separator, '/');
 
-        return '/(?:(?<=\A)|(?<=\n)|(?<=' . $separator . '))(?<match>"(?:""|[^"])*+(?:"|\z))/';
+        return '/(?:(?<=\A)|(?<=\n)|(?<=' . $separator . '))(?<match>"(?:""|[^"])*+(?:"[^' . $separator . '\n]*+|\z))/';
     }
 
     public function getTokenType(): TokenTypeEnum
