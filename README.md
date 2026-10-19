@@ -72,9 +72,8 @@ tempest/highlight matches a flat list of regular expressions with no parser
 state, which is the right trade for a highlighter but does bound what is
 reachable:
 
-- A fenced block's body is not highlighted in its own language. The fence line
-  is marked; the content is left alone. (Upstream's Markdown language behaves
-  the same way.)
+- CSV and TSV fence bodies highlight separators and quoted fields. Other fenced
+  block bodies are left alone. (Upstream's Markdown language behaves the same way.)
 - A block comment's body is not hidden. The `%%%` delimiters are marked, the
   lines between them are highlighted as ordinary Carve.
 - Nesting depth is invisible, so a construct that means something different

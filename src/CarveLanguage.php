@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MarkupCarve\TempestHighlight;
 
+use MarkupCarve\TempestHighlight\Injections\DelimitedFenceInjection;
 use MarkupCarve\TempestHighlight\Patterns\CarveAttributeBlockPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveAutolinkPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveAutoNumberMarkerPattern;
@@ -72,6 +73,15 @@ class CarveLanguage extends BaseLanguage
     public function getAliases(): array
     {
         return ['crv'];
+    }
+
+    public function getInjections(): array
+    {
+        return [
+            ...parent::getInjections(),
+            new DelimitedFenceInjection('csv'),
+            new DelimitedFenceInjection('tsv'),
+        ];
     }
 
     /**
