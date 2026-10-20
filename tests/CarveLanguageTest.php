@@ -16,6 +16,28 @@ final class CarveLanguageTest extends TestCase
         return (new Highlighter())->addLanguage(new CarveLanguage());
     }
 
+    #[DataProvider('provideContinuationMarkerCases')]
+    public function testContinuationMarkerColumn(string $source, bool $isMarker): void
+    {
+        $this->assertSame(
+            $isMarker,
+            str_contains($this->highlighter()->parse($source, 'carve'), '<span class="hl-property">+</span>'),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function provideContinuationMarkerCases(): iterable
+    {
+        yield 'column 0' => ["- a\n+\nb", true];
+        yield 'indented is text' => ["- a\n  +\nb", false];
+        yield 'after bullet' => ["- +\nb", true];
+        yield 'after quote' => ["> +\nb", true];
+        yield 'stacked bullets' => ["- - +\nb", true];
+        yield 'inline plus' => ["a + b\n", false];
+    }
+
     #[DataProvider('provideDelimitedFenceCases')]
     public function testDelimitedFences(string $source, string $expected): void
     {
