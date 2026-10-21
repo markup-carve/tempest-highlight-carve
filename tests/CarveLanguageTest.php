@@ -34,7 +34,16 @@ final class CarveLanguageTest extends TestCase
         yield 'indented is text' => ["- a\n  +\nb", false];
         yield 'after bullet' => ["- +\nb", true];
         yield 'after quote' => ["> +\nb", true];
+        yield 'quote prefix without space' => ["> - a\n>+\n> b", true];
+        yield 'after checkbox' => ["- [x] +\nb", true];
         yield 'stacked bullets' => ["- - +\nb", true];
+        yield 'nested item marker column' => ["- a\n  - b\n  +\n  > c", true];
+        yield 'blank line below is text' => ["- a\n+\n\nb", false];
+        yield 'end of input is text' => ["- a\n+", false];
+        yield 'sibling below is text' => ["- a\n+\n- b", false];
+        yield 'lettered sibling below is text' => ["- a\n+\nA. b", false];
+        yield 'lettered nested item marker column' => ["- a\n  A. b\n  +\n  c", true];
+        yield 'lettered nested sibling below is text' => ["- a\n  - b\n  +\n  A. c", false];
         yield 'inline plus' => ["a + b\n", false];
     }
 
