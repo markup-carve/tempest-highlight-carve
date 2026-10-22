@@ -34,7 +34,13 @@ final class CarveLanguageTest extends TestCase
         yield 'indented is text' => ["- a\n  +\nb", false];
         yield 'after bullet' => ["- +\nb", true];
         yield 'after quote' => ["> +\nb", true];
-        yield 'quote prefix without space' => ["> - a\n>+\n> b", true];
+        yield 'glued quote prefix is text' => ["> - a\n>+\n> b", false];
+        yield 'glued after a blank quote line is text' => ["> - a\n>\n>+\n> b", false];
+        yield 'glued double prefix is text' => ["> > - a\n> >\n>>+\nq", false];
+        yield 'unspaced double prefix is text' => ["> > - a\n> >\n>> +\nq", false];
+        yield 'glued inner prefix is quoted text' => ["> > - a\n> >\n> >+\nq", false];
+        yield 'spaced quote prefix' => ["> - a\n>\n> +\n> b", true];
+        yield 'spaced double quote prefix' => ["> > - a\n> >\n> > +\n> > b", true];
         yield 'after checkbox' => ["- [x] +\nb", true];
         yield 'stacked bullets' => ["- - +\nb", true];
         yield 'nested item marker column' => ["- a\n  - b\n  +\n  > c", true];
@@ -56,13 +62,35 @@ final class CarveLanguageTest extends TestCase
         yield 'open quote without a container at the plus' => ["> q\n> +\n> para\n", false];
         yield 'open nested quote' => ["> > q\n> +\n> para\n", true];
         yield 'opening quote with a quoted follower' => ["> +\n> para\n", false];
-        yield 'glued opening quote' => [">+\nq\n", true];
+        yield 'glued opening quote is text' => [">+\nq\n", false];
+        yield 'glued double opening quote is text' => [">>+\nq\n", false];
         yield 'indented top-level quote' => ["  > +\nq\n", false];
         yield 'bare first-block bullet' => ["- +\n", true];
         yield 'ordinal does not take a task box' => ["1. [ ] +\npara\n", false];
         yield 'description first-block' => [":: t\n: +\n", true];
         yield 'footnote first-block over a list' => ["x[^a]\n\n[^a]: +\n- a\n", false];
         yield 'description takes a list after a separate plus' => [":: t\n: a\n+\n- b\n", true];
+    }
+
+    #[DataProvider('provideQuotePrefixCases')]
+    public function testQuotePrefixNeedsASpace(string $source, int $markers): void
+    {
+        $this->assertSame(
+            $markers,
+            substr_count($this->highlighter()->parse($source, 'carve'), '<span class="hl-property">&gt;'),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string, int}>
+     */
+    public static function provideQuotePrefixCases(): iterable
+    {
+        yield 'glued' => [">+\n", 0];
+        yield 'glued double' => [">>+\n", 0];
+        yield 'unspaced double' => [">> +\n", 0];
+        yield 'glued inner' => ["> >+\n", 1];
+        yield 'spaced' => ["> +\n", 1];
     }
 
     #[DataProvider('provideDefinitionBodyCases')]

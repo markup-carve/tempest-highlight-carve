@@ -34,8 +34,11 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
 #[PatternTest(input: '> +
 flush', output: '+')]
 #[PatternTest(input: '> - a
->+
+> +
 > para', output: '+')]
+#[PatternTest(input: '> - a
+>+
+> para', output: null)]
 #[PatternTest(input: 'x[^a]
 
 [^a]: +
@@ -142,11 +145,11 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
             return false;
         }
         [$indent, $openers, $end] = $shape;
+        // The opener run must reach the `+` itself: `1. [ ] +` and `> >+` are text.
+        if ($end !== $plus) {
+            return false;
+        }
         if ($openers !== []) {
-            // The opener run must reach the `+` itself: `1. [ ] +` is item text.
-            if ($end !== $plus) {
-                return false;
-            }
             $kind = $openers[count($openers) - 1][1];
 
             return match ($kind) {
@@ -156,9 +159,7 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
             };
         }
 
-        $glued = $prefixDepth > 0 && $plus > 0 && $line[$plus - 1] === '>';
-
-        return $this->separateLineAttaches($lines, $fenced, $memo, $row, $prefixDepth, $indent, $glued);
+        return $this->separateLineAttaches($lines, $fenced, $memo, $row, $prefixDepth, $indent);
     }
 
     /**
@@ -168,7 +169,6 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
      * @param array<int, string> $lines
      * @param array<int, true> $fenced
      * @param array{cols: array<string, array<int, array{int, string}>>, marker: array<int, bool>, open: array<int, int>} $memo
-     * @param bool $glued
      * @param int $column
      * @param int $depth
      * @param int $row
@@ -180,13 +180,11 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
         int $row,
         int $depth,
         int $column,
-        bool $glued,
     ): bool {
         $open = false;
         $itemAtColumn = false;
         foreach ($this->openColumns($lines, $fenced, $memo, $row, $depth) as [$col, $kind]) {
-            // Behind a glued `>+` the engine attaches to a list item, not to a quote.
-            if ($col === $column && (!$glued || $kind === self::ITEM)) {
+            if ($col === $column) {
                 $open = true;
                 $itemAtColumn = $itemAtColumn || $kind === self::ITEM;
             }
@@ -204,8 +202,8 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
             return false;
         }
 
-        // Inside a quote, a spaced `> +` at the quote's own column does not take a nested quote.
-        return !($depth > 0 && !$glued && $column === 0 && $first !== null && $first[0] === 0 && $first[1] === self::QUOTE);
+        // Inside a quote, `> +` at the quote's own column does not take a nested quote.
+        return !($depth > 0 && $column === 0 && $first !== null && $first[0] === 0 && $first[1] === self::QUOTE);
     }
 
     /**
@@ -228,7 +226,7 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
         int $prefixDepth,
     ): bool {
         $line = $lines[$row];
-        if (!preg_match('/>[ \t]?\+[ \t]*$/', $line)) {
+        if (!preg_match('/>[ \t]\+[ \t]*$/', $line)) {
             return false;
         }
         $stripped = $this->unquote($line, $openDepth);
@@ -476,8 +474,7 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
         $at = 0;
         $col = 0;
         $length = strlen($line);
-        // `>q` is a paragraph; only a lone `+` may sit glued to its prefix (`>+`, `>>+`).
-        $glued = (bool)preg_match('/^[ \t>]*\+[ \t]*$/', $line);
+        // Each `>` needs a space or the line end after it: `>q`, `>+` and `>> +` are paragraphs.
         for ($i = 0; $i < $depth; $i++) {
             $start = $col;
             while ($at < $length && ($line[$at] === ' ' || $line[$at] === "\t") && $col - $start < 3) {
@@ -489,7 +486,7 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
             }
             $at++;
             $col++;
-            if (!$glued && $at < $length && $line[$at] !== ' ' && $line[$at] !== "\t") {
+            if ($at < $length && $line[$at] !== ' ' && $line[$at] !== "\t") {
                 return null;
             }
             if ($at < $length && ($line[$at] === ' ' || $line[$at] === "\t")) {
