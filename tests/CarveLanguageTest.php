@@ -16,6 +16,77 @@ final class CarveLanguageTest extends TestCase
         return (new Highlighter())->addLanguage(new CarveLanguage());
     }
 
+    #[DataProvider('provideContinuationMarkerCases')]
+    public function testContinuationMarkerColumn(string $source, bool $isMarker): void
+    {
+        $this->assertSame(
+            $isMarker,
+            str_contains($this->highlighter()->parse($source, 'carve'), '<span class="hl-property">+</span>'),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function provideContinuationMarkerCases(): iterable
+    {
+        yield 'column 0' => ["- a\n+\nb", true];
+        yield 'indented is text' => ["- a\n  +\nb", false];
+        yield 'after bullet' => ["- +\nb", true];
+        yield 'after quote' => ["> +\nb", true];
+        yield 'quote prefix without space' => ["> - a\n>+\n> b", true];
+        yield 'after checkbox' => ["- [x] +\nb", true];
+        yield 'stacked bullets' => ["- - +\nb", true];
+        yield 'nested item marker column' => ["- a\n  - b\n  +\n  > c", true];
+        yield 'blank line below is text' => ["- a\n+\n\nb", false];
+        yield 'end of input is text' => ["- a\n+", false];
+        yield 'sibling below is text' => ["- a\n+\n- b", false];
+        yield 'lettered sibling below is text' => ["- a\n+\nA. b", false];
+        yield 'lettered nested item marker column' => ["- a\n  A. b\n  +\n  c", true];
+        yield 'lettered nested sibling below is text' => ["- a\n  - b\n  +\n  A. c", false];
+        yield 'inline plus' => ["a + b\n", false];
+        yield 'column 0 inside a code fence' => ["```\n+\n```\n", false];
+        yield 'inside a fence under an item' => ["- a\n```\n+\n```\n", false];
+        yield 'second plus under a nested item' => ["- a\n  - b\n  +\n  > q\n  +\n  para\n", true];
+        yield 'nested plus closing to a content column' => ["- a\n  - b\n  +\npara\n", false];
+        yield 'nested follower too deep' => ["- a\n  - b\n  +\n    > q\n", false];
+        yield 'tab stop column' => ["- x\n  - y\n    - a\n\t+\n\t> q\n", true];
+        yield 'quote column inside a list item' => ["- > a\n  +\n  b\n", true];
+        yield 'no open container' => ["para\n+\nmore\n", false];
+        yield 'open quote without a container at the plus' => ["> q\n> +\n> para\n", false];
+        yield 'open nested quote' => ["> > q\n> +\n> para\n", true];
+        yield 'opening quote with a quoted follower' => ["> +\n> para\n", false];
+        yield 'glued opening quote' => [">+\nq\n", true];
+        yield 'indented top-level quote' => ["  > +\nq\n", false];
+        yield 'bare first-block bullet' => ["- +\n", true];
+        yield 'ordinal does not take a task box' => ["1. [ ] +\npara\n", false];
+        yield 'description first-block' => [":: t\n: +\n", true];
+        yield 'footnote first-block over a list' => ["x[^a]\n\n[^a]: +\n- a\n", false];
+        yield 'description takes a list after a separate plus' => [":: t\n: a\n+\n- b\n", true];
+    }
+
+    #[DataProvider('provideDefinitionBodyCases')]
+    public function testDefinitionBodyNeedsATerm(string $source, int $markers): void
+    {
+        $this->assertSame(
+            $markers,
+            substr_count($this->highlighter()->parse($source, 'carve'), '<span class="hl-property">:</span>'),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string, int}>
+     */
+    public static function provideDefinitionBodyCases(): iterable
+    {
+        yield 'under a term' => [":: t\n: a\n: b\n", 2];
+        yield 'after a lazy line' => [":: t\n: a\nlazy\n: b\n", 2];
+        yield 'lazy inside a quote' => ["> a\n: b\n", 0];
+        yield 'after a list item' => ["- a\n: b\n", 0];
+        yield 'after a paragraph' => ["para\n: b\n", 0];
+        yield 'after a CRLF code fence' => ["```\r\nx\r\n```\r\n:: t\r\n: body\r\n", 1];
+    }
+
     #[DataProvider('provideDelimitedFenceCases')]
     public function testDelimitedFences(string $source, string $expected): void
     {
