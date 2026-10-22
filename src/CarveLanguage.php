@@ -35,7 +35,6 @@ use MarkupCarve\TempestHighlight\Patterns\CarveItalicPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveLinkPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveMathPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveMentionPattern;
-use MarkupCarve\TempestHighlight\Patterns\CarveNestedContinuationMarkerPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveOrderedListMarkerPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveRawInlinePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveReferenceDefinitionPattern;
@@ -103,7 +102,6 @@ class CarveLanguage extends BaseLanguage
             new CarveAttributeBlockPattern(),
             new CarveBlockquoteMarkerPattern(),
             new CarveContinuationMarkerPattern(),
-            new CarveNestedContinuationMarkerPattern(),
             new CarveCaptionMarkerPattern(),
             new CarveDefinitionTermPattern(),
             new CarveDefinitionBodyPattern(),
