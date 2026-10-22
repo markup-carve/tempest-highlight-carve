@@ -84,6 +84,7 @@ final class CarveLanguageTest extends TestCase
         yield 'lazy inside a quote' => ["> a\n: b\n", 0];
         yield 'after a list item' => ["- a\n: b\n", 0];
         yield 'after a paragraph' => ["para\n: b\n", 0];
+        yield 'after a CRLF code fence' => ["```\r\nx\r\n```\r\n:: t\r\n: body\r\n", 1];
     }
 
     #[DataProvider('provideDelimitedFenceCases')]

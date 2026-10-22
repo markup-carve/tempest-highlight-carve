@@ -20,7 +20,7 @@ final class FencedLines
         $fenced = [];
         $fence = null;
         foreach ($lines as $row => $line) {
-            $bare = ltrim($line, " \t>");
+            $bare = rtrim(ltrim($line, " \t>"), "\r");
             if ($fence !== null) {
                 $fenced[$row] = true;
                 if (preg_match('/^' . preg_quote($fence[0], '/') . '{' . strlen($fence) . ',}[ \t]*$/', $bare)) {
