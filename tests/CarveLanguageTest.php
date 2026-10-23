@@ -426,6 +426,16 @@ final class CarveLanguageTest extends TestCase
             "<span class=\"hl-comment\">%%%</span>\n<span class=\"hl-comment\">```</span>\n<span class=\"hl-comment\">%%%</span>\n<span class=\"hl-keyword\"># h</span>",
         ];
 
+        yield 'indented closer stays code' => [
+            "```\n    ```\n# c\n```",
+            "<span class=\"hl-comment\">```</span>\n<span class=\"carve-code\">    ```</span>\n<span class=\"carve-code\"># c</span>\n<span class=\"hl-comment\">```</span>",
+        ];
+
+        yield 'dedent ends an item fence' => [
+            "- a\n\n  ```\n  x\n# h",
+            "<span class=\"hl-property\">-</span> a\n\n<span class=\"hl-comment\">  ```</span>\n<span class=\"carve-code\">  x</span>\n<span class=\"hl-keyword\"># h</span>",
+        ];
+
         yield 'unclosed fence runs to the end' => [
             "```\n# a",
             "<span class=\"hl-comment\">```</span>\n<span class=\"carve-code\"># a</span>",
