@@ -21,6 +21,8 @@ All notable changes to this package are documented here.
   second `>` of `> > q` and the `>` of `- > q` are markers. `- > +` is scoped
   as a continuation marker where it takes the next block
   (markup-carve/carve#3421). (#15)
+- A tab after a quote or list marker no longer opens one: `>\tq` and `-\t> q`
+  are paragraph text, as in the engine. (#15)
 
 ## [0.1.1] - 2026-10-08
 ### Fixed

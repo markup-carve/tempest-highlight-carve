@@ -89,6 +89,7 @@ final class CarveLanguageTest extends TestCase
         yield 'stacked hosted quote at the inner item column' => ["- - > +\n  b\n", false];
         yield 'hosted quote with two spaces before it' => ["-  > +\n# h\n", false];
         yield 'hosted quote with two spaces after it' => ["- >  +\n# h\n", false];
+        yield 'tab after the bullet is text' => ["-\t> +\n# h\n", false];
     }
 
     #[DataProvider('provideQuotePrefixCases')]
@@ -115,6 +116,9 @@ final class CarveLanguageTest extends TestCase
         yield 'after a bullet' => ["- > q\n", 1];
         yield 'after a task box' => ["- [x] > q\n", 1];
         yield 'glued after a bullet' => ["- >q\n", 0];
+        yield 'tab after a bullet' => ["-\t> q\n", 0];
+        yield 'tab after an inner marker' => ["> >\tq\n", 1];
+        yield 'tab after the marker' => [">\tq\n", 0];
         yield 'inside a code fence' => ["```\n- > q\n```\n", 0];
         yield 'quoted fence keeps its prefix' => ["> ```\n> > q\n> ```\n", 3];
     }

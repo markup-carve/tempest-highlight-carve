@@ -20,12 +20,13 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
 #[PatternTest(input: '- > quoted', output: '>')]
 final readonly class CarveBlockquoteMarkerPattern implements Pattern
 {
-    private const string OPENER = '/\G(?:(?<item>(?:[-*](?:\{[^}\n]*\})?[ \t]+(?:\[[ xX_>?-]\][ \t]+)?|(?:\d+|[A-Za-z])[.)](?:\{[^}\n]*\})?[ \t]+))'
-        . '|(?<quote>>(?=[ \t]|$)[ \t]?))/';
+    // Markers are separated by spaces only: `-\t> q` and `>\tq` are paragraphs.
+    private const string OPENER = '/\G(?:(?<item>(?:[-*](?:\{[^}\n]*\})? +(?:\[[ xX_>?-]\] +)?|(?:\d+|[A-Za-z])[.)](?:\{[^}\n]*\})? +))'
+        . '|(?<quote>>(?= |$) ?))/';
 
     public function getPattern(): string
     {
-        return '/^(?<match>[^\S\n]*>)(?=[ \t]|$)/m';
+        return '/^(?<match>[^\S\n]*>)(?= |$)/m';
     }
 
     /**
@@ -48,7 +49,7 @@ final readonly class CarveBlockquoteMarkerPattern implements Pattern
                 }
                 $first = false;
                 $pos += strlen((string)$m[0]);
-                $pos += strspn($line, " \t", $pos);
+                $pos += strspn($line, ' ', $pos);
             }
             $offset += strlen($line) + 1;
         }
