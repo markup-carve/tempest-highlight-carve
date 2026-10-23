@@ -14,8 +14,9 @@ use Tempest\Highlight\Tokens\TokenType;
  *
  * The token holds no children, so headings, emphasis and markers inside the
  * fence stay plain code. A fence in a quote keeps its `>` prefix outside the
- * token and ends where a row drops one of the opener's `>` markers. A `csv`
- * or `tsv` body is left to its injection.
+ * token and ends where a row drops one of the opener's `>` markers. An
+ * unprefixed `csv` or `tsv` body is left to its injection, and a backtick line
+ * inside a `%%%` comment opens nothing.
  */
 #[PatternTest(input: '```
 # not a heading
@@ -34,6 +35,8 @@ final readonly class CarveCodeBodyPattern implements Pattern
      */
     private const string INJECTED = '/^(?:csv|tsv)[ \t]*\r?$/';
 
+    private const string COMMENT_FENCE = '/^[ \t]*(%{3,})[ \t]*\r?$/';
+
     /**
      * @return array{match?: array<int, array{0: string, 1: int}>}
      */
@@ -44,8 +47,19 @@ final readonly class CarveCodeBodyPattern implements Pattern
         $fence = null;
         $depth = 0;
         $injected = false;
+        $comment = null;
         foreach (explode("\n", $content) as $line) {
             $length = strlen($line);
+            if ($comment !== null || ($fence === null && preg_match(self::COMMENT_FENCE, $line, $c))) {
+                if ($comment === null) {
+                    $comment = $c[1];
+                } elseif (preg_match(self::COMMENT_FENCE, $line, $c) && strlen($c[1]) >= strlen($comment)) {
+                    $comment = null;
+                }
+                $offset += $length + 1;
+
+                continue;
+            }
             if ($fence === null) {
                 $this->open($line, $fence, $depth, $injected);
                 $offset += $length + 1;
@@ -90,8 +104,8 @@ final readonly class CarveCodeBodyPattern implements Pattern
             return;
         }
         $fence = $m['fence'];
-        $depth = preg_match_all('/(?<![^ \t])>/', $m['prefix']);
-        $injected = (bool)preg_match(self::INJECTED, $m['info']);
+        $depth = (int)preg_match_all('/(?<![^ \t])>/', $m['prefix']);
+        $injected = trim($m['prefix']) === '' && preg_match(self::INJECTED, $m['info']) === 1;
     }
 
     private function stripQuotes(string $line, int $depth): ?string

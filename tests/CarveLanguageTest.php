@@ -415,6 +415,17 @@ final class CarveLanguageTest extends TestCase
             "- ```\n  # x\n  ```",
             "<span class=\"hl-property\">-</span> ```\n<span class=\"carve-code\">  # x</span>\n<span class=\"hl-comment\">  ```</span>",
         ];
+
+        yield 'quoted csv fence is code' => [
+            "> ```csv\n> # h\n> ```",
+            "<span class=\"hl-property\">&gt;</span> ```csv\n<span class=\"hl-property\">&gt;</span> <span class=\"carve-code\"># h</span>\n<span class=\"hl-property\">&gt;</span> ```",
+        ];
+
+        yield 'backtick line inside a comment fence opens nothing' => [
+            "%%%\n```\n%%%\n# h",
+            "<span class=\"hl-comment\">%%%</span>\n<span class=\"hl-comment\">```</span>\n<span class=\"hl-comment\">%%%</span>\n<span class=\"hl-keyword\"># h</span>",
+        ];
+
         yield 'unclosed fence runs to the end' => [
             "```\n# a",
             "<span class=\"hl-comment\">```</span>\n<span class=\"carve-code\"># a</span>",
