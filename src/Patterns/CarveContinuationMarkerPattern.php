@@ -74,6 +74,8 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
     private const string OPENER = '/\G(?:(?<item>(?:[-*](?:\{[^}\n]*\})?[ \t]+(?:\[[ xX_>?-]\][ \t]+)?|(?:\d+|[A-Za-z])[.)](?:\{[^}\n]*\})?[ \t]+))'
         . '|(?<quote>>(?:[ \t]|$))|(?<holder>:[ \t]+)|(?<note>\[\^[^\]\n]+\]:[ \t]+))/';
 
+    private const string HOSTED_QUOTE_PLUS = '/^(?:(?:[-*](?:\{[^}\n]*\})?(?: \[[ xX_>?-]\])?|(?:\d+|[A-Za-z])[.)](?:\{[^}\n]*\})?) )+(?:> )+\+[ \t]*$/';
+
     private const string BLOCK_LINE = '/^(?:`{3,}|~{3,}|:{3,}|#{1,6}(?:[ \t]|$)|\|)/';
 
     /**
@@ -155,6 +157,7 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
             return match ($kind) {
                 self::ITEM, self::HOLDER => true,
                 self::NOTE => $this->noteAttaches($lines, $row, $prefixDepth, $openers[count($openers) - 1][0]),
+                self::QUOTE => $this->hostedQuoteAttaches($lines, $fenced, $row, $prefixDepth, $indent, $openers),
                 default => false,
             };
         }
@@ -265,6 +268,46 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
         }
 
         return $follower[0] <= $limit;
+    }
+
+    /**
+     * `- > +`: the first block of a quote opened on a list item line. It takes
+     * a non-list block at column 0, at the line's indent or at the owning
+     * quote's column (markup-carve/carve#3421, corpus 630 to 656).
+     *
+     * @param array<int, string> $lines
+     * @param array<int, true> $fenced
+     * @param int $row
+     * @param int $depth
+     * @param int $indent
+     * @param array<int, array{int, string}> $openers
+     */
+    private function hostedQuoteAttaches(array $lines, array $fenced, int $row, int $depth, int $indent, array $openers): bool
+    {
+        $stripped = $this->unquote($lines[$row], $depth);
+        if (
+            $stripped === null
+            || $openers[0][1] !== self::ITEM
+            || !preg_match(self::HOSTED_QUOTE_PLUS, substr($lines[$row], $stripped[0] + strspn($lines[$row], " \t", $stripped[0])))
+            || !isset($lines[$row + 1])
+            || isset($fenced[$row + 1])
+        ) {
+            return false;
+        }
+        $next = $lines[$row + 1];
+        if (preg_match('/^[ \t>]*\+[ \t]*$/', $next)) {
+            return false;
+        }
+        $follower = $this->shape($next, min($this->quoteDepth($next), $depth));
+        if ($follower === null || $follower[1] === null) {
+            return false;
+        }
+        $first = $follower[1][0] ?? null;
+        if ($first !== null && $first[1] === self::ITEM) {
+            return false;
+        }
+
+        return in_array($follower[0], [0, $indent, $openers[count($openers) - 1][0]], true);
     }
 
     /**

@@ -70,6 +70,26 @@ final class CarveLanguageTest extends TestCase
         yield 'description first-block' => [":: t\n: +\n", true];
         yield 'footnote first-block over a list' => ["x[^a]\n\n[^a]: +\n- a\n", false];
         yield 'description takes a list after a separate plus' => [":: t\n: a\n+\n- b\n", true];
+
+        // A quote opened on a list item line takes its first block (markup-carve/carve#3421).
+        yield 'hosted quote over a paragraph' => ["- > +\npara\n", true];
+        yield 'hosted quote over a heading' => ["- > +\n# h\n", true];
+        yield 'hosted quote over a quote' => ["- > +\n> q\n", true];
+        yield 'hosted quote at its own column' => ["- > +\n  # h\n", true];
+        yield 'nested hosted quote at column 0' => ["- a\n  - > +\n# h\n", true];
+        yield 'nested hosted quote at its line column' => ["- a\n  - > +\n  b\n", true];
+        yield 'stacked hosted quote at its quote column' => ["- - > +\n    b\n", true];
+        yield 'ordered hosted quote' => ["1. > +\n# h\n", true];
+        yield 'quoted host' => ["> - a\n> - > +\n# h\n", true];
+        yield 'hosted quote with no follower' => ["- > +\n", false];
+        yield 'hosted quote over a blank line' => ["- > +\n\n# h\n", false];
+        yield 'hosted quote over a list item' => ["- > +\n- s\n", false];
+        yield 'hosted quote at an intervening column' => ["- > +\n b\n", false];
+        yield 'hosted quote past its column' => ["- > +\n   # h\n", false];
+        yield 'stacked hosted quote at the inner item column' => ["- - > +\n  b\n", false];
+        yield 'hosted quote with two spaces before it' => ["-  > +\n# h\n", false];
+        yield 'hosted quote with two spaces after it' => ["- >  +\n# h\n", false];
+        yield 'tab after the bullet is text' => ["-\t> +\n# h\n", false];
     }
 
     #[DataProvider('provideQuotePrefixCases')]
@@ -91,6 +111,16 @@ final class CarveLanguageTest extends TestCase
         yield 'unspaced double' => [">> +\n", 0];
         yield 'glued inner' => ["> >+\n", 1];
         yield 'spaced' => ["> +\n", 1];
+        yield 'stacked' => ["> > +\nflush\n", 2];
+        yield 'stacked over text' => ["> > q\n", 2];
+        yield 'after a bullet' => ["- > q\n", 1];
+        yield 'after a task box' => ["- [x] > q\n", 1];
+        yield 'glued after a bullet' => ["- >q\n", 0];
+        yield 'tab after a bullet' => ["-\t> q\n", 0];
+        yield 'tab after an inner marker' => ["> >\tq\n", 1];
+        yield 'tab after the marker' => [">\tq\n", 0];
+        yield 'inside a code fence' => ["```\n- > q\n```\n", 0];
+        yield 'quoted fence keeps its prefix' => ["> ```\n> > q\n> ```\n", 3];
     }
 
     #[DataProvider('provideDefinitionBodyCases')]
