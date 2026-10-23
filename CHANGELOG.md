@@ -26,6 +26,8 @@ All notable changes to this package are documented here.
 - A code fence body is no longer highlighted as Carve: headings, emphasis,
   markers and comments inside a fence stay plain code, in a quote or list item
   too. (#16)
+- A `csv` or `tsv` fence closed by a longer fence line ends there, instead of
+  coloring the rest of the document as fields. (#16)
 
 ## [0.1.1] - 2026-10-08
 ### Fixed
