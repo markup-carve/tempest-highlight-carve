@@ -20,7 +20,7 @@ final readonly class DelimitedFenceInjection implements Injection
 
     public function getPattern(): string
     {
-        return '/^[ \t]*(`{3,}|~{3,})' . $this->language . '[ \t]*\n(?<match>.*?)(?=\n^[ \t]*\1[ \t]*$|\z)/ms';
+        return '/^[ \t]*((`|~)\2{2,})' . $this->language . '[ \t]*\n(?<match>.*?)(?=\n^[ \t]*\1\2*[ \t]*$|\z)/ms';
     }
 
     public function parseContent(string $content, Highlighter $highlighter): string
