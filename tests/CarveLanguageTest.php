@@ -374,4 +374,50 @@ final class CarveLanguageTest extends TestCase
             $this->highlighter()->parse('mc{^2^}', 'carve'),
         );
     }
+
+    #[DataProvider('provideCodeFenceBodyCases')]
+    public function testCodeFenceBodyIsNotCarve(string $source, string $expected): void
+    {
+        $this->assertSame($expected, $this->highlighter()->parse($source, 'carve'));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function provideCodeFenceBodyCases(): iterable
+    {
+        yield 'heading and emphasis in a fence' => [
+            "```\n# h\n*b* - x\n```\n# real",
+            "<span class=\"hl-comment\">```</span>\n<span class=\"carve-code\"># h</span>\n<span class=\"carve-code\">*b* - x</span>\n<span class=\"hl-comment\">```</span>\n<span class=\"hl-keyword\"># real</span>",
+        ];
+
+        yield 'comment syntax in a fence' => [
+            "~~~\n%% c\n~~~",
+            "<span class=\"hl-comment\">~~~</span>\n<span class=\"carve-code\">%% c</span>\n<span class=\"hl-comment\">~~~</span>",
+        ];
+
+        yield 'shorter fence of the other kind stays code' => [
+            "~~~~\n```\n# y\n~~~~\n# z",
+            "<span class=\"hl-comment\">~~~~</span>\n<span class=\"carve-code\">```</span>\n<span class=\"carve-code\"># y</span>\n<span class=\"hl-comment\">~~~~</span>\n<span class=\"hl-keyword\"># z</span>",
+        ];
+
+        yield 'quoted fence keeps its quote markers' => [
+            "> ```\n> *a*\n> ```\n> *q*",
+            "<span class=\"hl-property\">&gt;</span> ```\n<span class=\"hl-property\">&gt;</span> <span class=\"carve-code\">*a*</span>\n<span class=\"hl-property\">&gt;</span> ```\n<span class=\"hl-property\">&gt;</span> <span class=\"hl-generic\">*q*</span>",
+        ];
+
+        yield 'quoted fence ends with its quote' => [
+            "> ```\n> # in\nlazy *l*",
+            "<span class=\"hl-property\">&gt;</span> ```\n<span class=\"hl-property\">&gt;</span> <span class=\"carve-code\"># in</span>\nlazy <span class=\"hl-generic\">*l*</span>",
+        ];
+
+        yield 'fence as the first block of an item' => [
+            "- ```\n  # x\n  ```",
+            "<span class=\"hl-property\">-</span> ```\n<span class=\"carve-code\">  # x</span>\n<span class=\"hl-comment\">  ```</span>",
+        ];
+        yield 'unclosed fence runs to the end' => [
+            "```\n# a",
+            "<span class=\"hl-comment\">```</span>\n<span class=\"carve-code\"># a</span>",
+        ];
+    }
 }

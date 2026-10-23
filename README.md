@@ -39,6 +39,9 @@ so they render uncolored. Add one:
 }
 ```
 
+Code fence body lines are wrapped in a `carve-code` span with no stock rule, so
+they render as plain text. Style that class if code should stand out.
+
 To highlight `.crv` blocks inside Markdown rendered through
 the CommonMark extension, register the language on the highlighter you hand to
 that extension; nothing else differs.

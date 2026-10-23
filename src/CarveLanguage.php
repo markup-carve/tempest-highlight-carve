@@ -13,6 +13,7 @@ use MarkupCarve\TempestHighlight\Patterns\CarveBlockquoteMarkerPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveBoldItalicPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveBoldPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveCaptionMarkerPattern;
+use MarkupCarve\TempestHighlight\Patterns\CarveCodeBodyPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveCodeFencePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveColonFencePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveCommentFencePattern;
@@ -91,6 +92,7 @@ class CarveLanguage extends BaseLanguage
     {
         return [
             ...parent::getPatterns(),
+            new CarveCodeBodyPattern(),
             new CarveFrontmatterDelimiterPattern(),
             new CarveCommentFencePattern(),
             new CarveCommentPattern(),

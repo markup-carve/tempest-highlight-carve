@@ -23,6 +23,9 @@ All notable changes to this package are documented here.
   (markup-carve/carve#3421). (#15)
 - A tab after a quote or list marker no longer opens one: `>\tq` and `-\t> q`
   are paragraph text, as in the engine. (#15)
+- A code fence body is no longer highlighted as Carve: headings, emphasis,
+  markers and comments inside a fence stay plain code, in a quote or list item
+  too. (#16)
 
 ## [0.1.1] - 2026-10-08
 ### Fixed
