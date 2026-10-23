@@ -440,6 +440,7 @@ final class CarveLanguageTest extends TestCase
             "````csv\na\n`````\n# h",
             "<span class=\"hl-comment\">````csv</span>\n<span class=\"hl-variable\">a</span>\n<span class=\"hl-comment\">`````</span>\n<span class=\"hl-keyword\"># h</span>",
         ];
+
         yield 'unclosed fence runs to the end' => [
             "```\n# a",
             "<span class=\"hl-comment\">```</span>\n<span class=\"carve-code\"># a</span>",
