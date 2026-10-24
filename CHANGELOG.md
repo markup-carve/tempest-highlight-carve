@@ -4,6 +4,17 @@ All notable changes to this package are documented here.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-24
+
+List highlighting now follows Carve syntax for plus-prefixed paragraphs and Roman ordered markers.
+
+### Fixes
+
+- Plus-prefixed paragraph text stays unstyled when it does not open a list (#18).
+- Roman ordered list markers receive ordered-list highlighting (#20).
+
+**Full Changelog**: https://github.com/markup-carve/tempest-highlight-carve/compare/0.1.2...0.1.3
+
 ## [0.1.2] - 2026-10-23
 
 ### Added
