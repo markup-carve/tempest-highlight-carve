@@ -14,13 +14,14 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
  */
 #[PatternTest(input: '- item', output: '-')]
 #[PatternTest(input: '* item', output: '*')]
+#[PatternTest(input: '+ item', output: null)]
 final readonly class CarveUnorderedListMarkerPattern implements Pattern
 {
     use IsPattern;
 
     public function getPattern(): string
     {
-        return '/^[^\\S\\n]*(?<match>[-*+])(?=[ \\t])/m';
+        return '/^[^\\S\\n]*(?<match>[-*])(?=[ \\t])/m';
     }
 
     public function getTokenType(): TokenTypeEnum
