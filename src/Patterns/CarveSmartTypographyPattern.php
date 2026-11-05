@@ -11,17 +11,38 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
 
 /**
  * Smart typography shortcuts.
+ *
+ * A hyphen run after whitespace (or an opening bracket or quote that follows
+ * whitespace) and before a word is a CLI flag and stays text (CARVE-P3-021).
+ * An arrow needs its exact hyphen run, so `--->` is a dash and `>`.
  */
 #[PatternTest(input: 'a -- b', output: '--')]
 #[PatternTest(input: 'and ... more', output: '...')]
 #[PatternTest(input: 'x -> y', output: '->')]
+#[PatternTest(input: 'a --> b', output: '-->')]
+#[PatternTest(input: 'a <-- b', output: '<--')]
+#[PatternTest(input: 'a <--> b', output: '<-->')]
+#[PatternTest(input: 'a ==> b', output: '==>')]
+#[PatternTest(input: 'a <== b', output: '<==')]
+#[PatternTest(input: 'a <=> b', output: '<=>')]
+#[PatternTest(input: 'a != b', output: '!=')]
+#[PatternTest(input: 'a <= b', output: '<=')]
+#[PatternTest(input: 'a >= b', output: '>=')]
+#[PatternTest(input: 'a +- b', output: '+-')]
+#[PatternTest(input: 'a{--}b', output: '{--}')]
+#[PatternTest(input: 'a--->b', output: '---')]
+#[PatternTest(input: 'pages 1--10', output: '--')]
+#[PatternTest(input: 'git log --oneline', output: null)]
+#[PatternTest(input: '(--x) y', output: null)]
+#[PatternTest(input: 'a ---> b', output: null)]
 final readonly class CarveSmartTypographyPattern implements Pattern
 {
     use IsPattern;
 
     public function getPattern(): string
     {
-        return '(?<match>---|--|\\.\\.\\.|->|\\(c\\)|\\(r\\)|\\(tm\\))';
+        return '/(?:(?<!\\S)|(?<=(?<!\\S)[("\']))(?!-->(?!-))-{2,}(?=[^\\s-])(*SKIP)(*F)'
+            . '|(?<match>\\{--\\}|<-->|<--(?!-)|(?<!-)-->|<==|==>|<=>|-{2,}|\\.\\.\\.|->|!=|<=|>=|\\(c\\)|\\(r\\)|\\(tm\\)|\\+-)/m';
     }
 
     public function getTokenType(): TokenTypeEnum
