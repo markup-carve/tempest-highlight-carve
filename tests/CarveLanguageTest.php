@@ -446,4 +446,27 @@ final class CarveLanguageTest extends TestCase
             "<span class=\"hl-comment\">```</span>\n<span class=\"carve-code\"># a</span>",
         ];
     }
+
+    #[DataProvider('provideBracedSourceCases')]
+    public function testBracedSourceKeepsEveryCharacter(string $source): void
+    {
+        $html = $this->highlighter()->parse($source, 'carve');
+
+        $this->assertSame(htmlspecialchars($source), strip_tags($html));
+        $this->assertStringNotContainsString('display: none', $html);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideBracedSourceCases(): iterable
+    {
+        yield 'braced strong' => ['a{*bold*}b'];
+        yield 'braced underline' => ['x{_u_}y'];
+        yield 'braced strike' => ['x{~s~}y'];
+        yield 'insertion' => ['a {+ins+} b'];
+        yield 'deletion' => ['a {-del-} b'];
+        yield 'substitution' => ['{~old~>new~}'];
+        yield 'colon braces' => ['{:c: x :}'];
+    }
 }

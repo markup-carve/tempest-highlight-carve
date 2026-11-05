@@ -14,6 +14,8 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
  */
 #[PatternTest(input: '{+added+}', output: '{+added+}')]
 #[PatternTest(input: '{-gone-}', output: '{-gone-}')]
+#[PatternTest(input: '{---}', output: '{---}')]
+#[PatternTest(input: 'a{--}b', output: null)]
 #[PatternTest(input: '{~old~>new~}', output: '{~old~>new~}')]
 final readonly class CarveCriticMarkupPattern implements Pattern
 {
@@ -21,7 +23,7 @@ final readonly class CarveCriticMarkupPattern implements Pattern
 
     public function getPattern(): string
     {
-        return '(?<match>\\{\\+[^}\\n]*\\+\\}|\\{-[^}\\n]*-\\}|\\{~[^}\\n]*~\\}|\\{\\#[^}\\n]*\\#\\})';
+        return '(?<match>\\{\\+[^}\\n]*\\+\\}|\\{-(?!-\\})[^}\\n]*-\\}|\\{~[^}\\n]*~\\}|\\{\\#[^}\\n]*\\#\\})';
     }
 
     public function getTokenType(): TokenTypeEnum

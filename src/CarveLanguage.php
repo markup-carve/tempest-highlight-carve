@@ -51,6 +51,7 @@ use MarkupCarve\TempestHighlight\Patterns\CarveThematicBreakPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveUnderlinePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveUnorderedListMarkerPattern;
 use Tempest\Highlight\Languages\Base\BaseLanguage;
+use Tempest\Highlight\Languages\Base\Patterns\InjectionTokenPattern;
 
 /**
  * Carve support for tempest/highlight.
@@ -76,10 +77,17 @@ class CarveLanguage extends BaseLanguage
         return ['crv'];
     }
 
+    /**
+     * The base language's annotation injections (`{* *}`, `{_ _}`, `{~ ~}`,
+     * `{+ +}`, `{- -}`, `{:class: :}`) and their token patterns are not
+     * inherited: those spellings are Carve braced emphasis and CriticMarkup,
+     * and the injections hide the braces.
+     *
+     * @return array<int, \Tempest\Highlight\Injection>
+     */
     public function getInjections(): array
     {
         return [
-            ...parent::getInjections(),
             new DelimitedFenceInjection('csv'),
             new DelimitedFenceInjection('tsv'),
         ];
@@ -91,7 +99,7 @@ class CarveLanguage extends BaseLanguage
     public function getPatterns(): array
     {
         return [
-            ...parent::getPatterns(),
+            new InjectionTokenPattern(),
             new CarveCodeBodyPattern(),
             new CarveFrontmatterDelimiterPattern(),
             new CarveCommentFencePattern(),
