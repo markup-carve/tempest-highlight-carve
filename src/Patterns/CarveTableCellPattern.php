@@ -10,20 +10,24 @@ use Tempest\Highlight\PatternTest;
 use Tempest\Highlight\Tokens\TokenTypeEnum;
 
 /**
- * Table cell separator, with a data cell's glued alignment run.
+ * Table cell separator, with a data cell's alignment: braced (`|{>}`,
+ * carve#5091) or the deprecated glued 0.1.13 run (`|>`).
  */
 #[PatternTest(input: '| Cell |', output: '|')]
 #[PatternTest(input: '|> 30 |', output: '|>')]
 #[PatternTest(input: '|~v x |', output: '|~v')]
 #[PatternTest(input: '|?^ x |', output: '|?^')]
 #[PatternTest(input: '|>x |', output: '|')]
+#[PatternTest(input: '|{>} 30 |', output: '|{>}')]
+#[PatternTest(input: '|{~v .x} a |', output: '|{~v .x}')]
+#[PatternTest(input: '|{>}x |', output: '|')]
 final readonly class CarveTableCellPattern implements Pattern
 {
     use IsPattern;
 
     public function getPattern(): string
     {
-        return '(?<match>\\|(?:[<>~][\\^~v]?|\\?[\\^~v])(?= )|\\|)';
+        return '(?<match>\\|\\{(?:[<>~][\\^~v]?|\\?[\\^~v])(?: [^}\\n]*)?\\}(?= )|\\|(?:[<>~][\\^~v]?|\\?[\\^~v])(?= )|\\|)';
     }
 
     public function getTokenType(): TokenTypeEnum

@@ -50,7 +50,8 @@ that extension; nothing else differs.
 
 Headings, thematic breaks, lists (unordered, ordered, the letter dialects, the
 auto-numbering `.` form and every task state), definition lists, blockquotes and
-their continuation markers, tables with their alignment axes, captions, code and
+their continuation markers, tables with their braced alignment (`|={>}`,
+`|{>}`) and the deprecated glued 0.1.13 form (`|=>`), captions, code and
 colon fences, comments in all three spellings, attribute blocks, links, images,
 spans, autolinks, cross-references, footnotes, includes, math, CriticMarkup,
 mentions and tags, smart typography, and the full emphasis set.
