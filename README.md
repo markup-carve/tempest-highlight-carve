@@ -91,6 +91,9 @@ reachable:
   lines between them are highlighted as ordinary Carve.
 - Nesting depth is invisible, so a construct that means something different
   inside a container than outside it is highlighted the same either way.
+- tempest/highlight's own annotation markup (`{+ +}`, `{- -}`, `{* *}`,
+  `{_ _}`, `{~ ~}`, `{:class: :}`) is not available in Carve source. Those
+  spellings are Carve braced emphasis and CriticMarkup, so they stay as written.
 
 For editor-grade highlighting that tracks state, use the TextMate grammar in
 [carve-grammars](https://github.com/markup-carve/carve-grammars) or the
