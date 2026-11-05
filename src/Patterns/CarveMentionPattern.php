@@ -24,6 +24,8 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
 #[PatternTest(input: 'see #2v', output: '#2v')]
 #[PatternTest(input: 'Issue #123', output: null)]
 #[PatternTest(input: 'hi @5', output: null)]
+#[PatternTest(input: 'x #123..a', output: null)]
+#[PatternTest(input: 'x #1.a', output: '#1.a')]
 #[PatternTest(input: 'ends the sentence #tag.', output: '#tag')]
 #[PatternTest(input: 'a </#intro> ref', output: null)]
 #[PatternTest(input: 'an {{ ch.crv#intro }} include', output: null)]
@@ -35,7 +37,7 @@ final readonly class CarveMentionPattern implements Pattern
 
     public function getPattern(): string
     {
-        return '/\\{\\{\\s[^}\\n]*\\}\\}(*SKIP)(*F)|(?<![\\w\\/:<])(?<match>[@#](?=[\\w.-]*?[a-zA-Z])[\\w-]+(?:\\.[\\w-]+)*)/';
+        return '/\\{\\{\\s[^}\\n]*\\}\\}(*SKIP)(*F)|(?<![\\w\\/:<])(?<match>[@#](?=(?:[\\w-]+\\.(?=[\\w-]))*[\\w-]*[a-zA-Z])[\\w-]+(?:\\.[\\w-]+)*)/';
     }
 
     public function getTokenType(): TokenTypeEnum
