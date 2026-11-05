@@ -30,7 +30,7 @@ use Tempest\Highlight\Tokens\TokenType;
 ```', output: null)]
 final readonly class CarveCodeBodyPattern implements Pattern
 {
-    private const string OPENER = '/^(?<prefix>(?:[ \t]*(?:>|[-*]|\d+[.)]|[A-Za-z][.)])(?=[ \t]))*[ \t]*)(?<fence>`{3,}|~{3,})(?<info>[^\n]*)$/';
+    private const string OPENER = '/^(?<prefix>(?:[ \t]*(?:>|[-*]|\d+[.)]|[A-Za-z]\))(?=[ \t])|[A-Za-z]\.(?=  ))*[ \t]*)(?<fence>`{3,}|~{3,})(?<info>[^\n]*)$/';
 
     /**
      * Info strings whose body `DelimitedFenceInjection` highlights instead.

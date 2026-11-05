@@ -71,10 +71,10 @@ final readonly class CarveContinuationMarkerPattern implements Pattern
 
     private const string NOTE = 'note';
 
-    private const string OPENER = '/\G(?:(?<item>(?:[-*](?:\{[^}\n]*\})?[ \t]+(?:\[[ xX_>?-]\][ \t]+)?|(?:\d+|[A-Za-z])[.)](?:\{[^}\n]*\})?[ \t]+))'
+    private const string OPENER = '/\G(?:(?<item>(?:[-*](?:\{[^}\n]*\})?[ \t]+(?:\[[ xX_>?-]\][ \t]+)?|(?:\d+[.)]|[A-Za-z]\)|[A-Za-z]\.(?=(?:\{[^}\n]*\})?  ))(?:\{[^}\n]*\})?[ \t]+))'
         . '|(?<quote>>(?:[ \t]|$))|(?<holder>:[ \t]+)|(?<note>\[\^[^\]\n]+\]:[ \t]+))/';
 
-    private const string HOSTED_QUOTE_PLUS = '/^(?:(?:[-*](?:\{[^}\n]*\})?(?: \[[ xX_>?-]\])?|(?:\d+|[A-Za-z])[.)](?:\{[^}\n]*\})?) )+(?:> )+\+[ \t]*$/';
+    private const string HOSTED_QUOTE_PLUS = '/^(?:(?:[-*](?:\{[^}\n]*\})?(?: \[[ xX_>?-]\])?|(?:\d+[.)]|[A-Za-z]\))(?:\{[^}\n]*\})?) |[A-Za-z]\.(?:\{[^}\n]*\})?  +)+(?:> )+\+[ \t]*$/';
 
     private const string BLOCK_LINE = '/^(?:`{3,}|~{3,}|:{3,}|#{1,6}(?:[ \t]|$)|\|)/';
 

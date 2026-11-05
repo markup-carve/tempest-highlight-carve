@@ -21,7 +21,7 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
 final readonly class CarveBlockquoteMarkerPattern implements Pattern
 {
     // Markers are separated by spaces only: `-\t> q` and `>\tq` are paragraphs.
-    private const string OPENER = '/\G(?:(?<item>(?:[-*](?:\{[^}\n]*\})? +(?:\[[ xX_>?-]\] +)?|(?:\d+|[A-Za-z])[.)](?:\{[^}\n]*\})? +))'
+    private const string OPENER = '/\G(?:(?<item>(?:[-*](?:\{[^}\n]*\})? +(?:\[[ xX_>?-]\] +)?|(?:\d+[.)]|[A-Za-z]\)|[A-Za-z]\.(?=(?:\{[^}\n]*\})?  ))(?:\{[^}\n]*\})? +))'
         . '|(?<quote>>(?= |$) ?))/';
 
     public function getPattern(): string

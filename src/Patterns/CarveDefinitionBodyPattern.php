@@ -84,7 +84,7 @@ final readonly class CarveDefinitionBodyPattern implements Pattern
                 continue;
             }
             // A paragraph line after a blank starts a new block; without one it is lazy body text.
-            if ($blank || preg_match('/^(?:>|[-*][ \t]|(?:\d+|[A-Za-z])[.)][ \t]|#|`{3}|~{3}|\|)/', $line)) {
+            if ($blank || preg_match('/^(?:>|[-*][ \t]|(?:\d+[.)]|[A-Za-z]\))[ \t]|[A-Za-z]\.  |#|`{3}|~{3}|\|)/', $line)) {
                 return false;
             }
         }
