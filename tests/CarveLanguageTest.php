@@ -47,9 +47,10 @@ final class CarveLanguageTest extends TestCase
         yield 'blank line below is text' => ["- a\n+\n\nb", false];
         yield 'end of input is text' => ["- a\n+", false];
         yield 'sibling below is text' => ["- a\n+\n- b", false];
-        yield 'lettered sibling below is text' => ["- a\n+\nA. b", false];
-        yield 'lettered nested item marker column' => ["- a\n  A. b\n  +\n  c", true];
-        yield 'lettered nested sibling below is text' => ["- a\n  - b\n  +\n  A. c", false];
+        yield 'lettered sibling below is text' => ["- a\n+\nA.  b", false];
+        yield 'initial below is a paragraph' => ["- a\n+\nA. b", true];
+        yield 'lettered nested item marker column' => ["- a\n  A.  b\n  +\n  c", true];
+        yield 'lettered nested sibling below is text' => ["- a\n  - b\n  +\n  A.  c", false];
         yield 'inline plus' => ["a + b\n", false];
         yield 'column 0 inside a code fence' => ["```\n+\n```\n", false];
         yield 'inside a fence under an item' => ["- a\n```\n+\n```\n", false];

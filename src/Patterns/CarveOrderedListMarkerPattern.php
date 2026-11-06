@@ -14,7 +14,11 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
  */
 #[PatternTest(input: '1. first', output: '1.')]
 #[PatternTest(input: 'a) alpha', output: 'a)')]
-#[PatternTest(input: 'iv. item', output: 'iv.')]
+#[PatternTest(input: 'iv.  item', output: 'iv.')]
+#[PatternTest(input: 'iv. item', output: null)]
+#[PatternTest(input: 'J. Smith wrote it', output: null)]
+#[PatternTest(input: 'a.  first', output: 'a.')]
+#[PatternTest(input: '10. x', output: '10.')]
 #[PatternTest(input: 'IV) item', output: 'IV)')]
 #[PatternTest(input: 'iV. item', output: null)]
 final readonly class CarveOrderedListMarkerPattern implements Pattern
@@ -23,7 +27,7 @@ final readonly class CarveOrderedListMarkerPattern implements Pattern
 
     public function getPattern(): string
     {
-        return '/^[^\\S\\n]*(?<match>(?:\\d+|[A-Za-z]|[ivxlcdm]{2,}|[IVXLCDM]{2,})[.)])(?=[ \\t])/m';
+        return '/^[^\\S\\n]*(?<match>\\d+[.)](?=[ \\t])|(?:[A-Za-z]|[ivxlcdm]{2,}|[IVXLCDM]{2,})(?:\\)(?=[ \\t])|\\.(?=  )))/m';
     }
 
     public function getTokenType(): TokenTypeEnum
