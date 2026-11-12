@@ -4,7 +4,7 @@ All notable changes to this package are documented here.
 
 ## [Unreleased]
 
-## [0.1.4] - 2026-11-11
+## [0.1.4] - 2026-11-12
 
 Highlighting follows the Carve 0.1.13 and 0.1.14 readings, and braced emphasis keeps its braces.
 
