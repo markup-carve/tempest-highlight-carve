@@ -4,6 +4,25 @@ All notable changes to this package are documented here.
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-11-12
+
+Highlighting follows the Carve 0.1.13 and 0.1.14 readings, and braced emphasis keeps its braces.
+
+### Fixes
+
+- Braced emphasis (`{* *}`, `{_ _}`) and CriticMarkup braces stay in the output instead of being read as tempest/highlight annotation markup (#22).
+- `{--}` is a braced en dash, not a CriticMarkup deletion, and include options (`@rows`, `@cols`, `@lines`) are not mentions (#22).
+- `->`, `<-`, `<->`, `(c)` and `(r)` are text (#23).
+- A letter or roman marker with a dot needs two spaces, so `J. Smith` is paragraph text (#23).
+- A mention or tag name needs an ASCII letter: `#2v` is a tag, `#123` and `@5` are text (#23).
+
+### Improvements
+
+- Braced cell alignment (`|={>}`, `|{>}`, `|={<^ .x}`) is scoped as the cell marker; the deprecated glued prefix still is (#23).
+- Doubled arrows, comparisons, `+-` and data-cell alignment runs follow the 0.1.13 typography and table readings (#22).
+
+**Full Changelog**: https://github.com/markup-carve/tempest-highlight-carve/compare/0.1.3...0.1.4
+
 ## [0.1.3] - 2026-10-24
 
 List highlighting now follows Carve syntax for plus-prefixed paragraphs and Roman ordered markers.
