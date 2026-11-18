@@ -79,5 +79,8 @@ final class Carve2LanguageTest extends TestCase
         self::assertStringContainsString('hl-generic', $strike);
         self::assertStringNotContainsString('hl-attribute', $strike);
         self::assertStringContainsString('hl-property', $highlighter->parse("a.  one\n", 'carve2'));
+        $code = $highlighter->parse("```\n%%%\n```\n# Heading\nplain\n", 'carve2');
+        self::assertStringContainsString('hl-keyword', $code);
+        self::assertStringNotContainsString('hl-comment">plain', $code);
     }
 }
