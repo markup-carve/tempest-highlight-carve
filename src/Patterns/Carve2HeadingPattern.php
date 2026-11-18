@@ -33,7 +33,7 @@ final readonly class Carve2HeadingPattern implements Pattern
         $matches = [];
         foreach ($headings[0] as [$heading, $offset]) {
             $before = substr($content, 0, $offset);
-            if ($offset > 0 && preg_match('/[^\n]\n$/', $before)) {
+            if ($offset > 0 && preg_match('/[^\n]\n\\z/', $before)) {
                 continue;
             }
             preg_match_all('/\\\\.(*SKIP)(*F)|(?:\$\$?|!)?(`+)(?!`)(?:(?!(?<!`)\1(?!`))[^\n])*(?:(?<!`)\1(?!`)|$)|(?<!\S)%%[^\n]*/m', $heading, $inline, PREG_OFFSET_CAPTURE);

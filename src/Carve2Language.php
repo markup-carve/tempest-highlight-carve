@@ -15,6 +15,7 @@ use MarkupCarve\TempestHighlight\Patterns\CarveCodeBodyPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveCodeFencePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveCommentFencePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveContinuationMarkerPattern;
+use MarkupCarve\TempestHighlight\Patterns\CarveCriticMarkupPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveHeadingPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveHighlightPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveItalicPattern;
@@ -70,6 +71,7 @@ class Carve2Language extends CarveLanguage
                 $pattern instanceof CarveUnderlinePattern => new Carve2Pattern('(?<match>\\{_[^}\\n]+_\\})', T::GENERIC),
                 $pattern instanceof CarveStrikePattern => new Carve2Pattern('(?<match>\\{~[^}\\n]+~\\})', T::GENERIC),
                 $pattern instanceof CarveHighlightPattern => new Carve2Pattern('(?<match>\\{=[^}\\n]+=\\})', T::GENERIC),
+                $pattern instanceof CarveCriticMarkupPattern => new Carve2Pattern('(?<match>\\{\\+[^}\\n]*\\+\\}|\\{-(?!-\\})[^}\\n]*-\\}|\\{\\#[^}\\n]*\\#\\})', T::ATTRIBUTE),
                 $pattern instanceof CarveBoldItalicPattern => new Carve2Pattern('(?<match>\\*/(?!\\s)(?:(?!/\\*).)+(?<!\\s)/\\*)', T::GENERIC),
                 $pattern instanceof CarveBoldPattern => new Carve2Pattern('(?<![\\w\\\\*/])(?<match>\\*(?![\\s/])(?:(?!\\*).)+(?<!\\s)\\*)(?![\\w*/])', T::GENERIC),
                 $pattern instanceof CarveItalicPattern => new Carve2Pattern('(?<![\\w\\\\/:<*])(?<match>/(?![\\s*])(?:(?![/<>]).)+(?<!\\s)/)(?![\\w*])', T::GENERIC),
