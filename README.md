@@ -28,6 +28,22 @@ $highlighter = (new Highlighter())->addLanguage(new CarveLanguage());
 echo $highlighter->parse($source, 'carve');
 ```
 
+For Carve 0.2 documents, register the separate `Carve2Language` and parse
+with `carve2` or `crv2`. The original `carve` registration retains 0.1 syntax.
+
+```php
+use MarkupCarve\TempestHighlight\Carve2Language;
+use Tempest\Highlight\Highlighter;
+
+$highlighter = (new Highlighter())->addLanguage(new Carve2Language());
+echo $highlighter->parse($source, 'carve2');
+```
+
+The 0.2 lexer recognizes equals headings, one-space letter list markers,
+region lines, braced alignment, and braced underline, strike, and mark spans.
+It leaves removed 0.1 forms such as tilde fences, glued table alignment,
+bare underline, and standalone plus attachment as ordinary text.
+
 Styling comes from tempest/highlight's own themes, so an existing stylesheet
 needs no change, with one exception: CSV and TSV separators are emitted as
 `hl-operator`, and the stock `highlight-tempest.css` has no rule for that class,
