@@ -73,6 +73,8 @@ final class Carve2LanguageTest extends TestCase
     {
         $highlighter = (new Highlighter())->addLanguage(new Carve2Language());
         self::assertStringContainsString('hl-keyword', $highlighter->parse("text\n\n# Heading\n", 'carve2'));
+        self::assertSame(2, substr_count($highlighter->parse("# One\n# Two\n", 'carve2'), 'hl-keyword'));
+        self::assertStringContainsString('hl-keyword', $highlighter->parse("```\ncode\n```\n# After\n", 'carve2'));
         $strike = $highlighter->parse('{~old~>new~}', 'carve2');
         self::assertStringContainsString('hl-generic', $strike);
         self::assertStringNotContainsString('hl-attribute', $strike);
