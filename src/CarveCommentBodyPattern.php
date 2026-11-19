@@ -7,7 +7,7 @@ namespace MarkupCarve\TempestHighlight;
 use Tempest\Highlight\Pattern;
 use Tempest\Highlight\Tokens\TokenTypeEnum;
 
-final readonly class Carve2CommentBodyPattern implements Pattern
+final readonly class CarveCommentBodyPattern implements Pattern
 {
     /**
      * @return array{match?: array<int, array{string, int}>}
