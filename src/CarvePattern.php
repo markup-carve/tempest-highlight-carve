@@ -8,7 +8,7 @@ use Tempest\Highlight\IsPattern;
 use Tempest\Highlight\Pattern;
 use Tempest\Highlight\Tokens\TokenTypeEnum;
 
-final readonly class Carve2Pattern implements Pattern
+final readonly class CarvePattern implements Pattern
 {
     use IsPattern;
 

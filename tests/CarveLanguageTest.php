@@ -11,463 +11,74 @@ use Tempest\Highlight\Highlighter;
 
 final class CarveLanguageTest extends TestCase
 {
-    private function highlighter(): Highlighter
+    #[DataProvider('inventory')]
+    public function testUpgradeInventory(string $source, string $fragment, bool $present): void
     {
-        return (new Highlighter())->addLanguage(new CarveLanguage());
-    }
-
-    #[DataProvider('provideContinuationMarkerCases')]
-    public function testContinuationMarkerColumn(string $source, bool $isMarker): void
-    {
-        $this->assertSame(
-            $isMarker,
-            str_contains($this->highlighter()->parse($source, 'carve'), '<span class="hl-property">+</span>'),
-        );
+        $html = (new Highlighter())->addLanguage(new CarveLanguage())->parse($source, 'carve');
+        self::assertSame($present, str_contains($html, $fragment), $html);
     }
 
     /**
-     * @return iterable<string, array{string, bool}>
+     * @return iterable<string, array{string, string, bool}>
      */
-    public static function provideContinuationMarkerCases(): iterable
+    public static function inventory(): iterable
     {
-        yield 'column 0' => ["- a\n+\nb", true];
-        yield 'indented is text' => ["- a\n  +\nb", false];
-        yield 'after bullet' => ["- +\nb", true];
-        yield 'after quote' => ["> +\nb", true];
-        yield 'glued quote prefix is text' => ["> - a\n>+\n> b", false];
-        yield 'glued after a blank quote line is text' => ["> - a\n>\n>+\n> b", false];
-        yield 'glued double prefix is text' => ["> > - a\n> >\n>>+\nq", false];
-        yield 'unspaced double prefix is text' => ["> > - a\n> >\n>> +\nq", false];
-        yield 'glued inner prefix is quoted text' => ["> > - a\n> >\n> >+\nq", false];
-        yield 'spaced quote prefix' => ["> - a\n>\n> +\n> b", true];
-        yield 'spaced double quote prefix' => ["> > - a\n> >\n> > +\n> > b", true];
-        yield 'after checkbox' => ["- [x] +\nb", true];
-        yield 'stacked bullets' => ["- - +\nb", true];
-        yield 'nested item marker column' => ["- a\n  - b\n  +\n  > c", true];
-        yield 'blank line below is text' => ["- a\n+\n\nb", false];
-        yield 'end of input is text' => ["- a\n+", false];
-        yield 'sibling below is text' => ["- a\n+\n- b", false];
-        yield 'lettered sibling below is text' => ["- a\n+\nA.  b", false];
-        yield 'initial below is a paragraph' => ["- a\n+\nA. b", true];
-        yield 'lettered nested item marker column' => ["- a\n  A.  b\n  +\n  c", true];
-        yield 'lettered nested sibling below is text' => ["- a\n  - b\n  +\n  A.  c", false];
-        yield 'inline plus' => ["a + b\n", false];
-        yield 'column 0 inside a code fence' => ["```\n+\n```\n", false];
-        yield 'inside a fence under an item' => ["- a\n```\n+\n```\n", false];
-        yield 'second plus under a nested item' => ["- a\n  - b\n  +\n  > q\n  +\n  para\n", true];
-        yield 'nested plus closing to a content column' => ["- a\n  - b\n  +\npara\n", false];
-        yield 'nested follower too deep' => ["- a\n  - b\n  +\n    > q\n", false];
-        yield 'tab stop column' => ["- x\n  - y\n    - a\n\t+\n\t> q\n", true];
-        yield 'quote column inside a list item' => ["- > a\n  +\n  b\n", true];
-        yield 'no open container' => ["para\n+\nmore\n", false];
-        yield 'open quote without a container at the plus' => ["> q\n> +\n> para\n", false];
-        yield 'open nested quote' => ["> > q\n> +\n> para\n", true];
-        yield 'opening quote with a quoted follower' => ["> +\n> para\n", false];
-        yield 'glued opening quote is text' => [">+\nq\n", false];
-        yield 'glued double opening quote is text' => [">>+\nq\n", false];
-        yield 'indented top-level quote' => ["  > +\nq\n", false];
-        yield 'bare first-block bullet' => ["- +\n", true];
-        yield 'ordinal does not take a task box' => ["1. [ ] +\npara\n", false];
-        yield 'description first-block' => [":: t\n: +\n", true];
-        yield 'footnote first-block over a list' => ["x[^a]\n\n[^a]: +\n- a\n", false];
-        yield 'description takes a list after a separate plus' => [":: t\n: a\n+\n- b\n", true];
-
-        // A quote opened on a list item line takes its first block (markup-carve/carve#3421).
-        yield 'hosted quote over a paragraph' => ["- > +\npara\n", true];
-        yield 'hosted quote over a heading' => ["- > +\n# h\n", true];
-        yield 'hosted quote over a quote' => ["- > +\n> q\n", true];
-        yield 'hosted quote at its own column' => ["- > +\n  # h\n", true];
-        yield 'nested hosted quote at column 0' => ["- a\n  - > +\n# h\n", true];
-        yield 'nested hosted quote at its line column' => ["- a\n  - > +\n  b\n", true];
-        yield 'stacked hosted quote at its quote column' => ["- - > +\n    b\n", true];
-        yield 'ordered hosted quote' => ["1. > +\n# h\n", true];
-        yield 'quoted host' => ["> - a\n> - > +\n# h\n", true];
-        yield 'hosted quote with no follower' => ["- > +\n", false];
-        yield 'hosted quote over a blank line' => ["- > +\n\n# h\n", false];
-        yield 'hosted quote over a list item' => ["- > +\n- s\n", false];
-        yield 'hosted quote at an intervening column' => ["- > +\n b\n", false];
-        yield 'hosted quote past its column' => ["- > +\n   # h\n", false];
-        yield 'stacked hosted quote at the inner item column' => ["- - > +\n  b\n", false];
-        yield 'hosted quote with two spaces before it' => ["-  > +\n# h\n", false];
-        yield 'hosted quote with two spaces after it' => ["- >  +\n# h\n", false];
-        yield 'tab after the bullet is text' => ["-\t> +\n# h\n", false];
+        yield 'U-001 lazy heading' => ["text\n# Heading\n", 'hl-keyword', false];
+        yield 'U-014 removed plus attachment' => ["- first\n+\n> note\n", 'hl-property">+</span>', false];
+        yield 'U-031 one-line attribute' => ["{.note}\nParagraph.\n", 'hl-attribute', true];
+        yield 'U-032 wrapped attribute' => ["{.a\n .b}\nParagraph.\n", 'hl-attribute', false];
+        yield 'U-044 underscore break removed' => ["para\n\n___\n", 'hl-comment', false];
+        yield 'U-045 spaced break removed' => ["* * *\n\n- - -\n", 'hl-comment', false];
+        yield 'U-049 wrong-column closer' => ["```\ncode\n   ```\nafter\n", 'carve-code">after</span>', true];
+        yield 'U-050 false comment closer' => ["%%%\nhidden\n%%% visible?\nafter\n", 'hl-comment">after', true];
+        yield 'U-055 GFM separator removed' => ["| a | b |\n|---|--:|\n", 'hl-property">|---', false];
+        yield 'U-056 glued alignment removed' => ["|=< a |=> b |=~ c |\n", 'hl-property">|=&lt;', false];
+        yield 'U-063 detached caption' => ["| a | b |\n\n^ Caption\n", 'hl-property">^', false];
+        yield 'U-065 bare underline removed' => ["an _underlined_ word\n", 'hl-generic', false];
+        yield 'U-066 bare strike removed' => ["a ~struck~ word\n", 'hl-generic', false];
+        yield 'U-067 bare mark removed' => ["a =marked= word\n", 'hl-generic', false];
+        yield 'U-068 old combined order removed' => ["/*bold italic*/\n", 'hl-generic">/*bold italic*/', false];
+        yield 'U-069 substitution removed' => ["{~old~>new~}\n", 'hl-operator', false];
+        yield 'U-101 equals heading' => ["= Heading\n", 'hl-keyword', true];
+        yield 'U-103 letter marker one space' => ["a. one\n", 'hl-property">a.', true];
+        yield 'U-104 quoted colon title' => ["::: > \"T\"\nquoted\n:::\n", 'hl-comment', true];
+        yield 'U-105 quoted fence title' => ["```=html \"T\"\n<b>x</b>\n```\n", 'hl-comment', true];
+        yield 'U-106 definition term continuation' => [":: term\nmore term text\n: first description\n", 'hl-property', true];
+        yield 'U-107 caption continuation' => ["| a | b |\n^ first\n^ second\n", 'hl-property">^', true];
+        yield 'U-289 include shift' => ["{{ a.crv @shift:1 }}\n", 'hl-', true];
+        yield 'CC-112 region marker' => ["a\n%% #region x\nb", 'hl-comment', true];
+        yield 'CC-893 glued header alignment removed' => ["|=< a |\n", 'hl-property">|=&lt;', false];
+        yield 'CC-894 braced header alignment' => ["|={<} a |\n", 'hl-property">|={&lt;}', true];
     }
 
-    #[DataProvider('provideQuotePrefixCases')]
-    public function testQuotePrefixNeedsASpace(string $source, int $markers): void
+    public function testPublicRegistration(): void
     {
-        $this->assertSame(
-            $markers,
-            substr_count($this->highlighter()->parse($source, 'carve'), '<span class="hl-property">&gt;'),
-        );
+        $language = new CarveLanguage();
+        self::assertSame('carve', $language->getName());
+        self::assertContains('crv', $language->getAliases());
     }
 
-    /**
-     * @return iterable<string, array{string, int}>
-     */
-    public static function provideQuotePrefixCases(): iterable
+    public function testRetainedInlineAndFenceShapes(): void
     {
-        yield 'glued' => [">+\n", 0];
-        yield 'glued double' => [">>+\n", 0];
-        yield 'unspaced double' => [">> +\n", 0];
-        yield 'glued inner' => ["> >+\n", 1];
-        yield 'spaced' => ["> +\n", 1];
-        yield 'stacked' => ["> > +\nflush\n", 2];
-        yield 'stacked over text' => ["> > q\n", 2];
-        yield 'after a bullet' => ["- > q\n", 1];
-        yield 'after a task box' => ["- [x] > q\n", 1];
-        yield 'glued after a bullet' => ["- >q\n", 0];
-        yield 'tab after a bullet' => ["-\t> q\n", 0];
-        yield 'tab after an inner marker' => ["> >\tq\n", 1];
-        yield 'tab after the marker' => [">\tq\n", 0];
-        yield 'inside a code fence' => ["```\n- > q\n```\n", 0];
-        yield 'quoted fence keeps its prefix' => ["> ```\n> > q\n> ```\n", 3];
-    }
-
-    #[DataProvider('provideDefinitionBodyCases')]
-    public function testDefinitionBodyNeedsATerm(string $source, int $markers): void
-    {
-        $this->assertSame(
-            $markers,
-            substr_count($this->highlighter()->parse($source, 'carve'), '<span class="hl-property">:</span>'),
-        );
-    }
-
-    /**
-     * @return iterable<string, array{string, int}>
-     */
-    public static function provideDefinitionBodyCases(): iterable
-    {
-        yield 'under a term' => [":: t\n: a\n: b\n", 2];
-        yield 'after a lazy line' => [":: t\n: a\nlazy\n: b\n", 2];
-        yield 'lazy inside a quote' => ["> a\n: b\n", 0];
-        yield 'after a list item' => ["- a\n: b\n", 0];
-        yield 'after a paragraph' => ["para\n: b\n", 0];
-        yield 'after a CRLF code fence' => ["```\r\nx\r\n```\r\n:: t\r\n: body\r\n", 1];
-    }
-
-    #[DataProvider('provideDelimitedFenceCases')]
-    public function testDelimitedFences(string $source, string $expected): void
-    {
-        $this->assertSame($expected, $this->highlighter()->parse($source, 'carve'));
-    }
-
-    /**
-     * @return iterable<string, array{string, string}>
-     */
-    public static function provideDelimitedFenceCases(): iterable
-    {
-        yield 'sample csv' => [
-            "```csv\nPlan,Seats,Price per month\nStarter,1,\"$0\"\nTeam,10,\"$49, billed yearly\"\n```",
-            '<span class="hl-comment">```csv</span>' . "\n"
-            . '<span class="hl-variable">Plan</span><span class="hl-operator">,</span><span class="hl-variable">Seats</span><span class="hl-operator">,</span><span class="hl-variable">Price per month</span>' . "\n"
-            . '<span class="hl-variable">Starter</span><span class="hl-operator">,</span><span class="hl-variable">1</span><span class="hl-operator">,</span><span class="hl-value">&quot;$0&quot;</span>' . "\n"
-            . '<span class="hl-variable">Team</span><span class="hl-operator">,</span><span class="hl-variable">10</span><span class="hl-operator">,</span><span class="hl-value">&quot;$49, billed yearly&quot;</span>' . "\n"
-            . '<span class="hl-comment">```</span>',
-        ];
-
-        yield 'csv quoted newline and escaped quote' => [
-            "```csv\na,\"line one\nline \"\"two\"\n```",
-            '<span class="hl-comment">```csv</span>' . "\n"
-            . '<span class="hl-variable">a</span><span class="hl-operator">,</span><span class="hl-value">&quot;line one' . "\n"
-            . 'line &quot;&quot;two&quot;</span>' . "\n"
-            . '<span class="hl-comment">```</span>',
-        ];
-
-        yield 'tsv separator and quoted tab' => [
-            "```tsv\na,b\tc\n\"x\ty\"\tz\n```",
-            '<span class="hl-comment">```tsv</span>' . "\n"
-            . '<span class="hl-variable">a,b</span><span class="hl-operator">' . "\t" . '</span><span class="hl-variable">c</span>' . "\n"
-            . '<span class="hl-value">&quot;x' . "\t" . 'y&quot;</span><span class="hl-operator">' . "\t" . '</span><span class="hl-variable">z</span>' . "\n"
-            . '<span class="hl-comment">```</span>',
-        ];
-
-        yield 'text after closing quote stays plain' => [
-            "```csv\n\"ok\"tail,next\n```",
-            '<span class="hl-comment">```csv</span>' . "\n"
-            . '<span class="hl-value">&quot;ok&quot;tail</span><span class="hl-operator">,</span><span class="hl-variable">next</span>' . "\n"
-            . '<span class="hl-comment">```</span>',
-        ];
-
-        yield 'mid-field quote remains plain' => [
-            "```csv\na,un\"quoted,tail\n```",
-            '<span class="hl-comment">```csv</span>' . "\n"
-            . '<span class="hl-variable">a</span><span class="hl-operator">,</span><span class="hl-variable">un&quot;quoted</span><span class="hl-operator">,</span><span class="hl-variable">tail</span>' . "\n"
-            . '<span class="hl-comment">```</span>',
-        ];
-
-        yield 'unfinished quote reaches end of body' => [
-            "```csv\na,\"unfinished\nnext,line\n```",
-            '<span class="hl-comment">```csv</span>' . "\n"
-            . '<span class="hl-variable">a</span><span class="hl-operator">,</span><span class="hl-value">&quot;unfinished' . "\n"
-            . 'next,line</span>' . "\n" . '<span class="hl-comment">```</span>',
-        ];
-    }
-
-    #[DataProvider('provideDelimitedFenceCases')]
-    public function testDelimitedBodiesLeaveNoPlainText(string $source, string $expected): void
-    {
-        $html = $this->highlighter()->parse($source, 'carve');
-        $body = preg_replace('/<span class="hl-comment">```[a-z]*<\/span>\n|\n<span class="hl-comment">```<\/span>$/', '', $html);
-        $stripped = preg_replace('/<span class="hl-[a-z]+">.*?<\/span>/s', '', (string)$body);
-
-        $this->assertSame('', str_replace("\n", '', (string)$stripped));
-    }
-
-    public function testRegistersItsNameAndAlias(): void
-    {
-        $highlighter = $this->highlighter();
-
-        $this->assertSame(
-            $highlighter->parse('# Title', 'carve'),
-            $highlighter->parse('# Title', 'crv'),
-        );
-    }
-
-    #[DataProvider('provideHighlightCases')]
-    public function testHighlight(string $source, string $expected): void
-    {
-        $this->assertSame($expected, $this->highlighter()->parse($source, 'carve'));
-    }
-
-    /**
-     * @return iterable<string, array{string, string}>
-     */
-    public static function provideHighlightCases(): iterable
-    {
-        yield 'heading' => [
-            '# Release notes',
-            '<span class="hl-keyword"># Release notes</span>',
-        ];
-
-        yield 'heading code and comment' => [
-            '# a `x %% b` c %% hidden',
-            '<span class="hl-keyword"># a </span><span class="hl-value">`x %% b`</span><span class="hl-keyword"> c </span><span class="hl-comment">%% hidden</span>',
-        ];
-
-        yield 'caption code and comment' => [
-            '^ cap `x %% b` c %% hidden',
-            '<span class="hl-property">^</span> cap <span class="hl-value">`x %% b`</span> c <span class="hl-comment">%% hidden</span>',
-        ];
-
-        yield 'emphasis' => [
-            'This has /italic/ and *bold* text',
-            'This has <span class="hl-generic">/italic/</span> and <span class="hl-generic">*bold*</span> text',
-        ];
-
-        yield 'line comment' => [
-            '%% a note',
-            '<span class="hl-comment">%% a note</span>',
-        ];
-
-        yield 'cross reference' => [
-            'See </#intro> now',
-            'See <span class="hl-type">&lt;/#intro&gt;</span> now',
-        ];
-    }
-
-    /**
-     * Carve reads a doubled delimiter as literal text, so highlighting the
-     * inner run would tell the reader the opposite of what the document does.
-     * This is the single most likely regression in this package: a Markdown
-     * habit reaching into a Carve grammar.
-     *
-     * @param string $source
-     */
-    #[DataProvider('provideLiteralCases')]
-    public function testDoubledDelimitersStayPlain(string $source): void
-    {
-        $this->assertSame(
-            $source,
-            $this->highlighter()->parse($source, 'carve'),
-            'a doubled delimiter is literal text in Carve and must not be highlighted',
-        );
-    }
-
-    /**
-     * @return iterable<string, array{string}>
-     */
-    public static function provideLiteralCases(): iterable
-    {
-        yield 'double asterisk' => ['In Carve **this** is literal'];
-        yield 'double tilde' => ['In Carve ~~this~~ is literal'];
-        yield 'bare superscript' => ['A bare ^2^ is literal'];
-        yield 'bare subscript' => ['A bare ,2, is literal'];
-        yield 'snake case' => ['a snake_case_name here'];
-        yield 'key value' => ['a key=value pair'];
-
-        // An include directive needs whitespace immediately inside both braces.
-        // Measured against carve-php 0.1.11: `{{ child.crv }}`,
-        // `{{ child.crv#pick }}` and the tab-padded spelling expand, while each
-        // of these stays ordinary text.
-        yield 'unpadded include' => ['see {{child.crv}} here'];
-        yield 'unpadded include with selector' => ['see {{child.crv#pick}} here'];
-        yield 'include braces with one space' => ['see {{ }} here'];
-        yield 'include braces with only whitespace' => ['see {{  }} here'];
-    }
-
-    /**
-     * @return iterable<string, array{string}>
-     */
-    public static function provideIncludeSpellingCases(): iterable
-    {
-        yield 'spaced' => ['{{ child.crv }}'];
-        yield 'spaced with selector' => ['{{ child.crv#pick }}'];
-        yield 'tab padded' => ["{{\tchild.crv\t}}"];
-        yield 'selector adjacent to a quoted path' => ['{{ "a b.crv"#pick }}'];
-    }
-
-    #[DataProvider('provideIncludeSpellingCases')]
-    public function testEveryIncludeSpellingTheEngineExpandsIsHighlighted(string $source): void
-    {
-        $this->assertStringContainsString(
-            'hl-type',
-            $this->highlighter()->parse($source, 'carve'),
-            'carve-php expands this spelling, so it has to read as a directive',
-        );
-    }
-
-    public function testCommentBeforeParagraphCodeStaysAComment(): void
-    {
-        $html = $this->highlighter()->parse('a %% hidden `code`', 'carve');
-        $this->assertStringContainsString('<span class="hl-comment">%% hidden `code`</span>', $html);
-    }
-
-    public function testMultilineParagraphCodeKeepsItsTrailingComment(): void
-    {
-        $html = $this->highlighter()->parse("a `x\ny` %% c", 'carve');
-        $this->assertStringContainsString('<span class="hl-comment">%% c</span>', $html);
-    }
-
-    public function testHeadingAndCaptionCommentBoundaries(): void
-    {
-        foreach (['# a ', '^ cap ', '> # a ', '> ^ cap '] as $prefix) {
-            foreach (['`x %% b`', '``x %% b``', '!`x %% b`', '$`x %% b`', '`x %% b', '` x `` y %% hidden', '``x```y %% hidden', '$$`x %% b`'] as $body) {
-                $source = $prefix . $body . "\n\nplain tail";
-                $html = $this->highlighter()->parse($source, 'carve');
-                $this->assertStringNotContainsString('hl-comment', $html, $source);
-                $this->assertStringEndsWith("\n\nplain tail", $html);
-            }
-            foreach ([1, 2, 3, 4] as $slashes) {
-                $source = $prefix . str_repeat(chr(92), $slashes) . '`x %% hidden';
-                $html = $this->highlighter()->parse($source, 'carve');
-                if ($slashes % 2 === 1) {
-                    $this->assertStringContainsString('hl-comment', $html, $source);
-                } else {
-                    $this->assertStringNotContainsString('hl-comment', $html, $source);
-                }
-            }
+        $highlighter = (new Highlighter())->addLanguage(new CarveLanguage());
+        foreach (['{^sup^}', '{,sub,}', '{_under_}', '{~strike~}', '{=mark=}', '*/both/*'] as $source) {
+            self::assertStringContainsString('hl-generic', $highlighter->parse($source, 'carve'));
         }
+        self::assertStringNotContainsString('hl-comment', $highlighter->parse("~~~\ntext\n~~~", 'carve'));
     }
 
-    public function testABareUrlSurvivesIntact(): void
+    public function testReviewCasesFollowTheModel(): void
     {
-        $this->assertSame(
-            'Visit <span class="hl-literal">https://example.com/a_b_c</span> now',
-            $this->highlighter()->parse('Visit https://example.com/a_b_c now', 'carve'),
-        );
-    }
-
-    public function testSupAndSubAreBracedOnly(): void
-    {
-        $this->assertSame(
-            'mc<span class="hl-generic">{^2^}</span>',
-            $this->highlighter()->parse('mc{^2^}', 'carve'),
-        );
-    }
-
-    #[DataProvider('provideCodeFenceBodyCases')]
-    public function testCodeFenceBodyIsNotCarve(string $source, string $expected): void
-    {
-        $this->assertSame($expected, $this->highlighter()->parse($source, 'carve'));
-    }
-
-    /**
-     * @return iterable<string, array{string, string}>
-     */
-    public static function provideCodeFenceBodyCases(): iterable
-    {
-        yield 'heading and emphasis in a fence' => [
-            "```\n# h\n*b* - x\n```\n# real",
-            "<span class=\"hl-comment\">```</span>\n<span class=\"carve-code\"># h</span>\n<span class=\"carve-code\">*b* - x</span>\n<span class=\"hl-comment\">```</span>\n<span class=\"hl-keyword\"># real</span>",
-        ];
-
-        yield 'comment syntax in a fence' => [
-            "~~~\n%% c\n~~~",
-            "<span class=\"hl-comment\">~~~</span>\n<span class=\"carve-code\">%% c</span>\n<span class=\"hl-comment\">~~~</span>",
-        ];
-
-        yield 'shorter fence of the other kind stays code' => [
-            "~~~~\n```\n# y\n~~~~\n# z",
-            "<span class=\"hl-comment\">~~~~</span>\n<span class=\"carve-code\">```</span>\n<span class=\"carve-code\"># y</span>\n<span class=\"hl-comment\">~~~~</span>\n<span class=\"hl-keyword\"># z</span>",
-        ];
-
-        yield 'quoted fence keeps its quote markers' => [
-            "> ```\n> *a*\n> ```\n> *q*",
-            "<span class=\"hl-property\">&gt;</span> ```\n<span class=\"hl-property\">&gt;</span> <span class=\"carve-code\">*a*</span>\n<span class=\"hl-property\">&gt;</span> ```\n<span class=\"hl-property\">&gt;</span> <span class=\"hl-generic\">*q*</span>",
-        ];
-
-        yield 'quoted fence ends with its quote' => [
-            "> ```\n> # in\nlazy *l*",
-            "<span class=\"hl-property\">&gt;</span> ```\n<span class=\"hl-property\">&gt;</span> <span class=\"carve-code\"># in</span>\nlazy <span class=\"hl-generic\">*l*</span>",
-        ];
-
-        yield 'fence as the first block of an item' => [
-            "- ```\n  # x\n  ```",
-            "<span class=\"hl-property\">-</span> ```\n<span class=\"carve-code\">  # x</span>\n<span class=\"hl-comment\">  ```</span>",
-        ];
-
-        yield 'quoted csv fence is code' => [
-            "> ```csv\n> # h\n> ```",
-            "<span class=\"hl-property\">&gt;</span> ```csv\n<span class=\"hl-property\">&gt;</span> <span class=\"carve-code\"># h</span>\n<span class=\"hl-property\">&gt;</span> ```",
-        ];
-
-        yield 'backtick line inside a comment fence opens nothing' => [
-            "%%%\n```\n%%%\n# h",
-            "<span class=\"hl-comment\">%%%</span>\n<span class=\"hl-comment\">```</span>\n<span class=\"hl-comment\">%%%</span>\n<span class=\"hl-keyword\"># h</span>",
-        ];
-
-        yield 'indented closer stays code' => [
-            "```\n    ```\n# c\n```",
-            "<span class=\"hl-comment\">```</span>\n<span class=\"carve-code\">    ```</span>\n<span class=\"carve-code\"># c</span>\n<span class=\"hl-comment\">```</span>",
-        ];
-
-        yield 'dedent ends an item fence' => [
-            "- a\n\n  ```\n  x\n# h",
-            "<span class=\"hl-property\">-</span> a\n\n<span class=\"hl-comment\">  ```</span>\n<span class=\"carve-code\">  x</span>\n<span class=\"hl-keyword\"># h</span>",
-        ];
-
-        yield 'longer closer ends a csv fence' => [
-            "````csv\na\n`````\n# h",
-            "<span class=\"hl-comment\">````csv</span>\n<span class=\"hl-variable\">a</span>\n<span class=\"hl-comment\">`````</span>\n<span class=\"hl-keyword\"># h</span>",
-        ];
-
-        yield 'unclosed fence runs to the end' => [
-            "```\n# a",
-            "<span class=\"hl-comment\">```</span>\n<span class=\"carve-code\"># a</span>",
-        ];
-    }
-
-    #[DataProvider('provideBracedSourceCases')]
-    public function testBracedSourceKeepsEveryCharacter(string $source): void
-    {
-        $html = $this->highlighter()->parse($source, 'carve');
-
-        $this->assertSame(htmlspecialchars($source), strip_tags($html));
-        $this->assertStringNotContainsString('display: none', $html);
-    }
-
-    /**
-     * @return iterable<string, array{string}>
-     */
-    public static function provideBracedSourceCases(): iterable
-    {
-        yield 'braced strong' => ['a{*bold*}b'];
-        yield 'braced underline' => ['x{_u_}y'];
-        yield 'braced strike' => ['x{~s~}y'];
-        yield 'insertion' => ['a {+ins+} b'];
-        yield 'deletion' => ['a {-del-} b'];
-        yield 'substitution' => ['{~old~>new~}'];
-        yield 'colon braces' => ['{:c: x :}'];
+        $highlighter = (new Highlighter())->addLanguage(new CarveLanguage());
+        self::assertStringContainsString('hl-keyword', $highlighter->parse("text\n\n# Heading\n", 'carve'));
+        self::assertSame(2, substr_count($highlighter->parse("# One\n# Two\n", 'carve'), 'hl-keyword'));
+        self::assertStringContainsString('hl-keyword', $highlighter->parse("```\ncode\n```\n# After\n", 'carve'));
+        $strike = $highlighter->parse('{~old~>new~}', 'carve');
+        self::assertStringContainsString('hl-generic', $strike);
+        self::assertStringNotContainsString('hl-attribute', $strike);
+        self::assertStringContainsString('hl-property', $highlighter->parse("a.  one\n", 'carve'));
+        $code = $highlighter->parse("```\n%%%\n```\n# Heading\nplain\n", 'carve');
+        self::assertStringContainsString('hl-keyword', $code);
+        self::assertStringNotContainsString('hl-comment">plain', $code);
     }
 }

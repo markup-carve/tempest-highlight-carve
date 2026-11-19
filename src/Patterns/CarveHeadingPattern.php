@@ -10,7 +10,7 @@ use Tempest\Highlight\PatternTest;
 use Tempest\Highlight\Tokens\TokenTypeEnum;
 
 /**
- * ATX heading. Carve puts heading attributes on the line above, never after.
+ * Carve 0.2 hash or equals heading. Carve puts heading attributes on the line above, never after.
  */
 #[PatternTest(input: '# Title', output: '# Title')]
 #[PatternTest(input: '###### Six', output: '###### Six')]
@@ -21,7 +21,7 @@ final readonly class CarveHeadingPattern implements Pattern
 
     public function getPattern(): string
     {
-        return '/^(?<match>#{1,6}[ \\t]+.*)$/m';
+        return '/^(?<match>(?:#{1,6}|={1,6})[ \\t]+.*)$/m';
     }
 
     /**
@@ -29,9 +29,18 @@ final readonly class CarveHeadingPattern implements Pattern
      */
     public function match(string $content): array
     {
-        preg_match_all('/^(?:> )*#{1,6} +(?![ \t]*$)[^\n]+/m', $content, $headings, PREG_OFFSET_CAPTURE);
+        preg_match_all('/^(?:> )*(?:#{1,6}|={1,6}) +(?![ \t]*$)[^\n]+/m', $content, $headings, PREG_OFFSET_CAPTURE);
         $matches = [];
         foreach ($headings[0] as [$heading, $offset]) {
+            $before = substr($content, 0, $offset);
+            if ($offset > 0 && preg_match('/[^\n]\n\\z/', $before)) {
+                $prior = substr($before, 0, -1);
+                $break = strrpos($prior, "\n");
+                $previous = substr($prior, $break === false ? 0 : $break + 1);
+                if (!preg_match('/^[ \t]*(?:(?:#{1,6}|={1,6}) |(?:`{3,}|:{3,}|%{3,}|\\*{3,})[ \t]*$|\\|.*\\|[ \t]*$)/', $previous)) {
+                    continue;
+                }
+            }
             preg_match_all('/\\\\.(*SKIP)(*F)|(?:\$\$?|!)?(`+)(?!`)(?:(?!(?<!`)\1(?!`))[^\n])*(?:(?<!`)\1(?!`)|$)|(?<!\S)%%[^\n]*/m', $heading, $inline, PREG_OFFSET_CAPTURE);
             $cursor = strspn($heading, '> ');
             foreach ($inline[0] as [$value, $start]) {
