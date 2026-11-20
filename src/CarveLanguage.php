@@ -32,6 +32,7 @@ use MarkupCarve\TempestHighlight\Patterns\CarveHighlightPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveImagePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveIncludePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveInlineCodePattern;
+use MarkupCarve\TempestHighlight\Patterns\CarveInlineDirectivePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveItalicPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveLinkPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveMathPattern;
@@ -113,6 +114,7 @@ class CarveLanguage extends BaseLanguage
                 new CarveRawInlinePattern(),
                 new CarveMathPattern(),
                 new CarveInlineCodePattern(),
+                new CarveInlineDirectivePattern(),
                 new CarveCrossReferencePattern(),
                 new CarveAutolinkPattern(),
                 new CarveBareUrlPattern(),

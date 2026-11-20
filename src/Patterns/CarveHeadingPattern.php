@@ -13,6 +13,7 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
  * Carve 0.2 hash or equals heading. Carve puts heading attributes on the line above, never after.
  */
 #[PatternTest(input: '# Title', output: '# Title')]
+#[PatternTest(input: '= Title', output: '= Title')]
 #[PatternTest(input: '###### Six', output: '###### Six')]
 #[PatternTest(input: '#no-space', output: null)]
 final readonly class CarveHeadingPattern implements Pattern
