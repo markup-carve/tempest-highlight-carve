@@ -16,6 +16,8 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
 #[PatternTest(input: ':term[Tree] :cite[doe] :index[Tree]', output: ':term[')]
 #[PatternTest(input: ':color[red] and :spoiler[secret]', output: ':color[')]
 #[PatternTest(input: ':unknown[content]', output: ':unknown[')]
+#[PatternTest(input: ':wiki[outer [inner]]', output: ':wiki[')]
+#[PatternTest(input: ':wiki[unfinished and [other]', output: null)]
 #[PatternTest(input: 'https://example.com/a[b]', output: null)]
 final readonly class CarveInlineDirectivePattern implements Pattern
 {
@@ -23,7 +25,7 @@ final readonly class CarveInlineDirectivePattern implements Pattern
 
     public function getPattern(): string
     {
-        return '/(?<![A-Za-z0-9_:\\x2f])(?<match>:[A-Za-z][A-Za-z0-9_-]*\\[)(?=[^\\r\\n]*\\])/';
+        return '/(?<![A-Za-z0-9_:\\x2f])(?<match>:[A-Za-z][A-Za-z0-9_-]*\\[)(?=(?<body>(?:[^\\[\\]\\r\\n]|\\[(?&body)\\])*)\\])/';
     }
 
     public function getTokenType(): TokenTypeEnum
