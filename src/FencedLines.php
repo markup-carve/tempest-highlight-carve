@@ -29,7 +29,7 @@ final class FencedLines
 
                 continue;
             }
-            if (preg_match('/^(`{3,}|~{3,})/', $bare, $m)) {
+            if (preg_match('/^(`{3,})/', $bare, $m)) {
                 $fence = $m[1];
             }
         }

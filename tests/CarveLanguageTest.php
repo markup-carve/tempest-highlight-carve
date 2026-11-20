@@ -58,6 +58,15 @@ final class CarveLanguageTest extends TestCase
         self::assertContains('crv', $language->getAliases());
     }
 
+    public function testInlineDirectivesAndFenceBodies(): void
+    {
+        $highlighter = (new Highlighter())->addLanguage(new CarveLanguage());
+        foreach (['wiki', 'term', 'cite', 'index', 'color', 'spoiler'] as $name) {
+            self::assertStringContainsString('hl-keyword">:' . $name . '[</span>', $highlighter->parse(':' . $name . '[value]', 'carve'));
+        }
+        self::assertStringNotContainsString('hl-keyword">:wiki[</span>', $highlighter->parse("```\n:wiki[body]\n```", 'carve'));
+    }
+
     public function testRetainedInlineAndFenceShapes(): void
     {
         $highlighter = (new Highlighter())->addLanguage(new CarveLanguage());
