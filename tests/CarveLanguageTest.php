@@ -67,6 +67,7 @@ final class CarveLanguageTest extends TestCase
         self::assertStringNotContainsString('hl-keyword">:wiki[</span>', $highlighter->parse("```\n:wiki[body]\n```", 'carve'));
         self::assertStringNotContainsString('hl-keyword">:wiki[</span>', $highlighter->parse(':wiki[unfinished and [other]', 'carve'));
         self::assertStringContainsString('hl-keyword">:wiki[</span>', $highlighter->parse(':wiki[' . str_repeat('[x]', 3000) . ']', 'carve'));
+        self::assertStringContainsString('hl-keyword">:wiki[</span>', $highlighter->parse(':wiki[`[`]', 'carve'));
     }
 
     public function testRetainedInlineAndFenceShapes(): void
