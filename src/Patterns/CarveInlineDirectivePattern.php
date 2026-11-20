@@ -18,6 +18,7 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
 #[PatternTest(input: ':unknown[content]', output: ':unknown[')]
 #[PatternTest(input: ':wiki[outer [inner]]', output: ':wiki[')]
 #[PatternTest(input: ':wiki[unfinished and [other]', output: null)]
+#[PatternTest(input: '\\:wiki[escaped]', output: null)]
 #[PatternTest(input: 'https://example.com/a[b]', output: null)]
 final readonly class CarveInlineDirectivePattern implements Pattern
 {
@@ -25,7 +26,38 @@ final readonly class CarveInlineDirectivePattern implements Pattern
 
     public function getPattern(): string
     {
-        return '/(?<![A-Za-z0-9_:\\x2f])(?<match>:[A-Za-z][A-Za-z0-9_-]*\\[)(?=(?<body>(?:[^\\[\\]\\r\\n]|\\[(?&body)\\])*)\\])/';
+        return '/(?<![A-Za-z0-9_:\\x2f\\x5c])(?<match>:[A-Za-z][A-Za-z0-9_-]*\\[)/';
+    }
+
+    /**
+     * @return array{match: list<array{string, int}>}
+     */
+    public function match(string $content): array
+    {
+        preg_match_all($this->getPattern(), $content, $candidates, PREG_OFFSET_CAPTURE);
+        $stack = [];
+        $closing = [];
+        $length = strlen($content);
+        for ($i = 0; $i < $length; $i++) {
+            $char = $content[$i];
+            if ($char === '\\' && $i + 1 < $length && $content[$i + 1] !== "\n") {
+                $i++;
+            } elseif ($char === "\n") {
+                $stack = [];
+            } elseif ($char === '[') {
+                $stack[] = $i;
+            } elseif ($char === ']' && $stack !== []) {
+                $closing[array_pop($stack)] = true;
+            }
+        }
+        $matches = [];
+        foreach ($candidates['match'] ?? [] as [$value, $offset]) {
+            if (isset($closing[$offset + strlen($value) - 1])) {
+                $matches[] = [$value, $offset];
+            }
+        }
+
+        return ['match' => $matches];
     }
 
     public function getTokenType(): TokenTypeEnum
