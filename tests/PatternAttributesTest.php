@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MarkupCarve\TempestHighlight\Test;
 
+use MarkupCarve\TempestHighlight\CarveLanguage;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -92,23 +93,16 @@ final class PatternAttributesTest extends TestCase
      */
     private static function patternClasses(): array
     {
-        $files = glob(dirname(__DIR__) . '/src/Patterns/*.php');
-        self::assertNotFalse($files, 'src/Patterns is unreadable');
-        self::assertNotSame([], $files, 'no patterns were found');
-
         $classes = [];
-
-        foreach ($files as $file) {
-            $class = 'MarkupCarve\\TempestHighlight\\Patterns\\' . basename($file, '.php');
-
-            self::assertTrue(
-                is_a($class, Pattern::class, true),
-                sprintf('%s does not implement %s', $class, Pattern::class),
-            );
-
-            $classes[] = $class;
+        foreach ((new CarveLanguage())->getPatterns() as $pattern) {
+            $class = $pattern::class;
+            if (str_starts_with($class, 'MarkupCarve\\TempestHighlight\\Patterns\\')) {
+                $classes[$class] = $class;
+            }
         }
 
-        return $classes;
+        self::assertNotSame([], $classes, 'no active package patterns were found');
+
+        return array_values($classes);
     }
 }

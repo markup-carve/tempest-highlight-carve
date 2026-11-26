@@ -1,115 +1,20 @@
-# Carve for tempest/highlight
+# tempest-highlight-carve
 
-[![CI](https://img.shields.io/github/actions/workflow/status/markup-carve/tempest-highlight-carve/ci.yml?branch=main&style=flat-square)](https://github.com/markup-carve/tempest-highlight-carve/actions)
-[![Latest Stable Version](https://img.shields.io/packagist/v/markup-carve/tempest-highlight-carve?style=flat-square)](https://packagist.org/packages/markup-carve/tempest-highlight-carve)
-[![Total Downloads](https://img.shields.io/packagist/dt/markup-carve/tempest-highlight-carve?style=flat-square)](https://packagist.org/packages/markup-carve/tempest-highlight-carve)
-[![PHPStan](https://img.shields.io/badge/PHPStan-level%209-brightgreen.svg?style=flat-square)](https://phpstan.org/)
-[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg?style=flat-square)](https://php.net)
-[![Software License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
-
-Server-side syntax highlighting for [Carve](https://github.com/markup-carve/carve),
-a lightweight markup language for documents and the web, as a language for
-[tempest/highlight](https://github.com/tempestphp/highlight).
-
-```bash
-composer require markup-carve/tempest-highlight-carve
-```
-
-## Usage
-
-Register the language on a highlighter and parse with `carve` or `crv`:
+Carve 0.2 syntax highlighting for Tempest Highlight. Register `CarveLanguage` and select `carve` or `crv`.
 
 ```php
 use MarkupCarve\TempestHighlight\CarveLanguage;
 use Tempest\Highlight\Highlighter;
 
-$highlighter = (new Highlighter())->addLanguage(new CarveLanguage());
-
-echo $highlighter->parse($source, 'carve');
+$html = (new Highlighter())->addLanguage(new CarveLanguage())->parse($source, 'carve');
 ```
 
-Styling comes from tempest/highlight's own themes, so an existing stylesheet
-needs no change, with one exception: CSV and TSV separators are emitted as
-`hl-operator`, and the stock `highlight-tempest.css` has no rule for that class,
-so they render uncolored. Add one:
+The 0.2 scope inventory is checked by `tests/CarveLanguageTest.php`.
+
+CSV and TSV fences receive field and separator highlighting through the built-in injections. Separator tokens use `hl-operator`; add a rule for that class if your theme does not color it. Other code-fence bodies remain unstyled under the `carve-code` class.
 
 ```css
-.hl-operator {
-    color: #c2410c;
-}
+.hl-operator { color: #c2410c; }
 ```
 
-Code fence body lines are wrapped in a `carve-code` span with no stock rule, so
-they render as plain text. Style that class if code should stand out.
-
-To highlight `.crv` blocks inside Markdown rendered through
-the CommonMark extension, register the language on the highlighter you hand to
-that extension; nothing else differs.
-
-## What it highlights
-
-Headings, thematic breaks, lists (unordered, ordered, the letter dialects, the
-auto-numbering `.` form and every task state), definition lists, blockquotes and
-their continuation markers, tables with their braced alignment (`|={>}`,
-`|{>}`) and the deprecated glued 0.1.13 form (`|=>`), captions, code and
-colon fences, comments in all three spellings, attribute blocks, links, images,
-spans, autolinks, cross-references, footnotes, includes, math, CriticMarkup,
-mentions and tags, smart typography, and the full emphasis set.
-
-## Carve is not Markdown, and the grammar knows it
-
-Most of the work here is in what does **not** get highlighted. Carve's emphasis
-uses single delimiters, so the Markdown doubles are ordinary text:
-
-| Written | Carve reads it as |
-|---------|-------------------|
-| `/italic/` `*bold*` `_underline_` `~strike~` `=highlight=` | emphasis |
-| `**bold**` `~~strike~~` | literal text |
-| `{^sup^}` `{,sub,}` | superscript, subscript |
-| `^sup^` `,sub,` | literal text |
-
-A highlighter that does not know this does not leave the construct alone - it
-reads it as whatever its own syntax spells, and tells the reader the opposite of
-what the document does. The same trap catches `snake_case_name`, `key=value`,
-and any bare URL, which is dense in exactly the characters Carve marks emphasis
-with. Each of those is pinned by a test.
-
-Pattern **order** is the mechanism. tempest/highlight applies patterns in the
-order `CarveLanguage::getPatterns()` returns them, so every construct that may
-contain a delimiter is listed before the emphasis patterns. Moving one up turns
-a URL into an italic, silently, which is why the ordering carries a comment in
-the source rather than only here.
-
-## Limits
-
-tempest/highlight matches a flat list of regular expressions with no parser
-state, which is the right trade for a highlighter but does bound what is
-reachable:
-
-- CSV and TSV fence bodies highlight separators and quoted fields. Other fenced
-  block bodies are left alone. (Upstream's Markdown language behaves the same way.)
-- A block comment's body is not hidden. The `%%%` delimiters are marked, the
-  lines between them are highlighted as ordinary Carve.
-- Nesting depth is invisible, so a construct that means something different
-  inside a container than outside it is highlighted the same either way.
-- tempest/highlight's own annotation markup (`{+ +}`, `{- -}`, `{* *}`,
-  `{_ _}`, `{~ ~}`, `{:class: :}`) is not available in Carve source. Those
-  spellings are Carve braced emphasis and CriticMarkup, so they stay as written.
-
-For editor-grade highlighting that tracks state, use the TextMate grammar in
-[carve-grammars](https://github.com/markup-carve/carve-grammars) or the
-[tree-sitter grammar](https://github.com/markup-carve/tree-sitter-carve).
-
-## Contributing
-
-Every pattern carries `#[PatternTest]` attributes, and `tests/PatternAttributesTest.php`
-runs them - upstream's runner globs its own tree, so these would otherwise never
-execute. A pattern with no case fails the suite. Use `output: null` to pin what
-must *not* match; those cases are the ones that catch a Markdown habit reaching
-into a Carve grammar.
-
-```bash
-composer test        # phpunit
-composer stan        # phpstan, level 9
-composer cs-check    # phpcs
-```
+The highlighter uses flat patterns, so it cannot track arbitrary container depth or parser state. The pattern examples in `tests/PatternAttributesTest.php` cover the syntax it recognizes.

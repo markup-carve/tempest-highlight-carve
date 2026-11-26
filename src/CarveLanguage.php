@@ -32,6 +32,7 @@ use MarkupCarve\TempestHighlight\Patterns\CarveHighlightPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveImagePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveIncludePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveInlineCodePattern;
+use MarkupCarve\TempestHighlight\Patterns\CarveInlineDirectivePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveItalicPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveLinkPattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveMathPattern;
@@ -52,16 +53,8 @@ use MarkupCarve\TempestHighlight\Patterns\CarveUnderlinePattern;
 use MarkupCarve\TempestHighlight\Patterns\CarveUnorderedListMarkerPattern;
 use Tempest\Highlight\Languages\Base\BaseLanguage;
 use Tempest\Highlight\Languages\Base\Patterns\InjectionTokenPattern;
+use Tempest\Highlight\Tokens\TokenTypeEnum as T;
 
-/**
- * Carve support for tempest/highlight.
- *
- * ORDER IS THE CONTRACT. Patterns apply in the order this method returns them,
- * and Carve marks emphasis with single characters - / * _ ~ = - that occur
- * constantly inside URLs, code spans and identifiers. Every construct that may
- * CONTAIN one is therefore listed before the emphasis patterns. Moving an
- * emphasis pattern up turns a URL into an italic, silently.
- */
 class CarveLanguage extends BaseLanguage
 {
     public function getName(): string
@@ -78,19 +71,11 @@ class CarveLanguage extends BaseLanguage
     }
 
     /**
-     * The base language's annotation injections (`{* *}`, `{_ _}`, `{~ ~}`,
-     * `{+ +}`, `{- -}`, `{:class: :}`) and their token patterns are not
-     * inherited: those spellings are Carve braced emphasis and CriticMarkup,
-     * and the injections hide the braces.
-     *
      * @return array<int, \Tempest\Highlight\Injection>
      */
     public function getInjections(): array
     {
-        return [
-            new DelimitedFenceInjection('csv'),
-            new DelimitedFenceInjection('tsv'),
-        ];
+        return [new DelimitedFenceInjection('csv'), new DelimitedFenceInjection('tsv')];
     }
 
     /**
@@ -98,53 +83,84 @@ class CarveLanguage extends BaseLanguage
      */
     public function getPatterns(): array
     {
-        return [
-            new InjectionTokenPattern(),
-            new CarveCodeBodyPattern(),
-            new CarveFrontmatterDelimiterPattern(),
-            new CarveCommentFencePattern(),
-            new CarveCommentPattern(),
-            new CarveDelimitedCommentPattern(),
-            new CarveCodeFencePattern(),
-            new CarveColonFencePattern(),
-            new CarveHeadingPattern(),
-            new CarveThematicBreakPattern(),
-            new CarveAttributeBlockPattern(),
-            new CarveBlockquoteMarkerPattern(),
-            new CarveContinuationMarkerPattern(),
-            new CarveCaptionMarkerPattern(),
-            new CarveDefinitionTermPattern(),
-            new CarveDefinitionBodyPattern(),
-            new CarveTaskMarkerPattern(),
-            new CarveUnorderedListMarkerPattern(),
-            new CarveOrderedListMarkerPattern(),
-            new CarveAutoNumberMarkerPattern(),
-            new CarveTableHeaderCellPattern(),
-            new CarveTableCellPattern(),
-            new CarveReferenceDefinitionPattern(),
-            new CarveIncludePattern(),
-            new CarveEscapePattern(),
-            new CarveRawInlinePattern(),
-            new CarveMathPattern(),
-            new CarveInlineCodePattern(),
-            new CarveCrossReferencePattern(),
-            new CarveAutolinkPattern(),
-            new CarveBareUrlPattern(),
-            new CarveImagePattern(),
-            new CarveSpanPattern(),
-            new CarveLinkPattern(),
-            new CarveFootnoteReferencePattern(),
-            new CarveSuperscriptPattern(),
-            new CarveSubscriptPattern(),
-            new CarveCriticMarkupPattern(),
-            new CarveBoldItalicPattern(),
-            new CarveBoldPattern(),
-            new CarveItalicPattern(),
-            new CarveUnderlinePattern(),
-            new CarveStrikePattern(),
-            new CarveHighlightPattern(),
-            new CarveMentionPattern(),
-            new CarveSmartTypographyPattern(),
-        ];
+        $patterns = [];
+        foreach (
+            [
+                new InjectionTokenPattern(),
+                new CarveCodeBodyPattern(),
+                new CarveFrontmatterDelimiterPattern(),
+                new CarveCommentFencePattern(),
+                new CarveCommentPattern(),
+                new CarveDelimitedCommentPattern(),
+                new CarveCodeFencePattern(),
+                new CarveColonFencePattern(),
+                new CarveHeadingPattern(),
+                new CarveThematicBreakPattern(),
+                new CarveAttributeBlockPattern(),
+                new CarveBlockquoteMarkerPattern(),
+                new CarveContinuationMarkerPattern(),
+                new CarveCaptionMarkerPattern(),
+                new CarveDefinitionTermPattern(),
+                new CarveDefinitionBodyPattern(),
+                new CarveTaskMarkerPattern(),
+                new CarveUnorderedListMarkerPattern(),
+                new CarveOrderedListMarkerPattern(),
+                new CarveAutoNumberMarkerPattern(),
+                new CarveTableHeaderCellPattern(),
+                new CarveTableCellPattern(),
+                new CarveReferenceDefinitionPattern(),
+                new CarveIncludePattern(),
+                new CarveEscapePattern(),
+                new CarveRawInlinePattern(),
+                new CarveMathPattern(),
+                new CarveInlineCodePattern(),
+                new CarveInlineDirectivePattern(),
+                new CarveCrossReferencePattern(),
+                new CarveAutolinkPattern(),
+                new CarveBareUrlPattern(),
+                new CarveImagePattern(),
+                new CarveSpanPattern(),
+                new CarveLinkPattern(),
+                new CarveFootnoteReferencePattern(),
+                new CarveSuperscriptPattern(),
+                new CarveSubscriptPattern(),
+                new CarveCriticMarkupPattern(),
+                new CarveBoldItalicPattern(),
+                new CarveBoldPattern(),
+                new CarveItalicPattern(),
+                new CarveUnderlinePattern(),
+                new CarveStrikePattern(),
+                new CarveHighlightPattern(),
+                new CarveMentionPattern(),
+                new CarveSmartTypographyPattern(),
+            ] as $pattern
+        ) {
+            if ($pattern instanceof CarveCommentFencePattern) {
+                $patterns[] = new CarveCommentBodyPattern();
+            }
+            $replacement = match (true) {
+                $pattern instanceof CarveCodeFencePattern => new CarvePattern('/^(?<match>[ \\t]*`{3,}[^\\n]*)$/m', T::COMMENT),
+                $pattern instanceof CarveThematicBreakPattern => new CarvePattern('/^(?<match>\\*{3,})[ \\t]*$/m', T::COMMENT),
+                $pattern instanceof CarveOrderedListMarkerPattern => new CarvePattern('/^[^\\S\\n]*(?<match>\\d+[.)](?= )|(?:[A-Za-z]|[ivxlcdm]{2,}|[IVXLCDM]{2,})(?:\\)(?= )|\\.(?= )))/m', T::PROPERTY),
+                $pattern instanceof CarveTableHeaderCellPattern => new CarvePattern('(?<match>\\|=(?:\\{(?:[<>~][\\^~v]?|\\?[\\^~v])(?: [^}\\n]*)?\\}(?= ))?)', T::PROPERTY),
+                $pattern instanceof CarveTableCellPattern => new CarvePattern('(?<match>\\|(?:\\{(?:[<>~][\\^~v]?|\\?[\\^~v])(?: [^}\\n]*)?\\}(?= ))?)', T::PROPERTY),
+                $pattern instanceof CarveUnderlinePattern => new CarvePattern('(?<match>\\{_[^}\\n]+_\\})', T::GENERIC),
+                $pattern instanceof CarveStrikePattern => new CarvePattern('(?<match>\\{~[^}\\n]+~\\})', T::GENERIC),
+                $pattern instanceof CarveHighlightPattern => new CarvePattern('(?<match>\\{=[^}\\n]+=\\})', T::GENERIC),
+                $pattern instanceof CarveCriticMarkupPattern => new CarvePattern('(?<match>\\{\\+[^}\\n]*\\+\\}|\\{-(?!-\\})[^}\\n]*-\\}|\\{\\#[^}\\n]*\\#\\})', T::ATTRIBUTE),
+                $pattern instanceof CarveBoldItalicPattern => new CarvePattern('(?<match>\\*/(?!\\s)(?:(?!/\\*).)+(?<!\\s)/\\*)', T::GENERIC),
+                $pattern instanceof CarveBoldPattern => new CarvePattern('(?<![\\w\\\\*/])(?<match>\\*(?![\\s/])(?:(?!\\*).)+(?<!\\s)\\*)(?![\\w*/])', T::GENERIC),
+                $pattern instanceof CarveItalicPattern => new CarvePattern('(?<![\\w\\\\/:<*])(?<match>/(?![\\s*])(?:(?![/<>]).)+(?<!\\s)/)(?![\\w*])', T::GENERIC),
+                $pattern instanceof CarveCaptionMarkerPattern => new CarvePattern('/(?<!\\n\\n)^(?<match>\\^)(?= )/m', T::PROPERTY),
+                $pattern instanceof CarveAttributeBlockPattern => $pattern,
+                $pattern instanceof CarveContinuationMarkerPattern => null,
+                default => $pattern,
+            };
+            if ($replacement !== null) {
+                $patterns[] = $replacement;
+            }
+        }
+
+        return $patterns;
     }
 }

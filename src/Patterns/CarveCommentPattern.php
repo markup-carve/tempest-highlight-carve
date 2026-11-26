@@ -14,6 +14,7 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
  */
 #[PatternTest(input: '%% a note', output: '%% a note')]
 #[PatternTest(input: 'text %% trailing', output: '%% trailing')]
+#[PatternTest(input: '= Heading with `open %% code`', output: null)]
 final readonly class CarveCommentPattern implements Pattern
 {
     use IsPattern;
@@ -32,7 +33,7 @@ final readonly class CarveCommentPattern implements Pattern
         $offset = 0;
         foreach (explode("\n", $content) as $line) {
             $pattern = $this->getPattern();
-            if (!preg_match('/^(?:> )*(?:#{1,6} |\^ )/', $line)) {
+            if (!preg_match('/^(?:> )*(?:(?:#{1,6}|={1,6}) |\^ )/', $line)) {
                 $pattern = str_replace('|$)', ')', $pattern);
             }
             preg_match_all($pattern, $line, $found, PREG_OFFSET_CAPTURE);

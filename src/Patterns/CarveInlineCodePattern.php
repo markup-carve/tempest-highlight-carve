@@ -13,6 +13,7 @@ use Tempest\Highlight\Tokens\TokenTypeEnum;
  * Inline code span.
  */
 #[PatternTest(input: 'use `code` here', output: '`code`')]
+#[PatternTest(input: '= Heading with `open code', output: '`open code')]
 final readonly class CarveInlineCodePattern implements Pattern
 {
     use IsPattern;
@@ -31,7 +32,7 @@ final readonly class CarveInlineCodePattern implements Pattern
         $offset = 0;
         foreach (explode("\n", $content) as $line) {
             $pattern = $this->getPattern();
-            if (!preg_match('/^(?:> )*(?:#{1,6} |\^ )/', $line)) {
+            if (!preg_match('/^(?:> )*(?:(?:#{1,6}|={1,6}) |\^ )/', $line)) {
                 $pattern = str_replace('|$)', ')', $pattern);
             }
             preg_match_all($pattern, $line, $found, PREG_OFFSET_CAPTURE);

@@ -4,6 +4,10 @@ All notable changes to this package are documented here.
 
 ## [Unreleased]
 
+### Breaking
+
+- Make `CarveLanguage` the 0.2 highlighter under `carve` and `crv`. Remove the separate `Carve2Language` API and 0.1 tests; retain shared patterns internally.
+
 ## [0.1.4] - 2026-11-12
 
 Highlighting follows the Carve 0.1.13 and 0.1.14 readings, and braced emphasis keeps its braces.
