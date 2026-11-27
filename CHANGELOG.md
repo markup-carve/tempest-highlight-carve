@@ -4,9 +4,20 @@ All notable changes to this package are documented here.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-27
+
+`CarveLanguage` highlights Carve 0.2 syntax.
+
 ### Breaking
 
-- Make `CarveLanguage` the 0.2 highlighter under `carve` and `crv`. Remove the separate `Carve2Language` API and 0.1 tests; retain shared patterns internally.
+- `CarveLanguage`, registered as `carve` and `crv`, highlights Carve 0.2 instead of 0.1. The 0.1 highlighter and the interim `Carve2Language` and `crv2` names are gone (#25, #26).
+
+### Improvements
+
+- 0.2 code and CSV/TSV fences, heading and comment bodies, inline syntax and table cells are highlighted, covering the published 0.2 upgrade cases (#25).
+- `=` headings and inline directive openers such as `:wiki[...]` and `:cite[...]` are highlighted (#29).
+
+**Full Changelog**: https://github.com/markup-carve/tempest-highlight-carve/compare/0.1.4...0.2.0
 
 ## [0.1.4] - 2026-11-12
 
